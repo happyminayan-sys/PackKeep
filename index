@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>栄養パック発注管理システム</title>
+
+  <!-- 📱 スマホアプリ化（ホーム画面追加・全画面起動）用の設定 -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="パック発注">
+  <!-- アプリのアイコン用画像 -->
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/679/679821.png">
+  <meta name="mobile-web-app-capable" content="yes">
+
+<style>
+  :root {
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --bg: #f8fafc;
+    --card-bg: #ffffff;
+    --text-main: #1e293b;
+    --text-sub: #64748b;
+    --border: #e2e8f0;
+    --danger: #ef4444;
+    --success: #10b981;
+  }
+  body {
+    font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+    background-color: var(--bg);
+    color: var(--text-main);
+    line-height: 1.6;
+    padding: 20px 10px;
+    margin: 0;
+    overscroll-behavior-y: contain; 
+  }
+  .container {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 30px;
+    color: var(--text-main);
+  }
+  .card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  .card-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-top: 0;
+    margin-bottom: 16px;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 8px;
+  }
+  .form-group {
+    margin-bottom: 16px;
+  }
+  .form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: var(--text-main);
+  }
+  .form-group input[type="date"],
+  .form-group input[type="number"] {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  .form-group input:focus {
+    border-color: var(--primary);
+    outline: none;
+  }
+  .flex-row {
+    display: flex;
+    gap: 12px;
+  }
+  .flex-row .form-group {
+    flex: 1;
+  }
+  button.primary-btn {
+    width: 100%;
+    padding: 16px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    -webkit-tap-highlight-color: transparent; 
+  }
+  button.primary-btn:hover {
+    background-color: var(--primary-hover);
+  }
+  details {
+    background: var(--bg);
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+  }
+  summary {
+    font-weight: bold;
+    cursor: pointer;
+    color: var(--text-sub);
+    padding: 4px 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .settings-area {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--border);
+  }
+  #result-area {
+    display: none;
+  }
+  .result-section {
+    margin-bottom: 24px;
+    background: var(--bg);
+    padding: 16px;
+    border-radius: 8px;
+  }
+  .result-section h3 {
+    font-size: 1.1rem;
+    color: var(--primary);
+    margin-top: 0;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .warning {
+    color: var(--danger);
+    font-size: 0.85rem;
+    margin-top: 4px;
+    display: block;
+    font-weight: bold;
+  }
+  .schedule-info {
+    background: #e0f2fe;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 4px solid var(--primary);
+  }
+  .schedule-info p {
+    margin: 6px 0;
+    font-size: 0.95rem;
+    color: #0369a1;
+  }
+  .schedule-info span {
+    font-weight: bold;
+  }
+  .schedule-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 0;
+  }
+  .schedule-row:not(:last-child) {
+    border-bottom: 1px dashed var(--border);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>📦 栄養パック発注管理</h1>
+
+  <details>
+    <summary>⚙️ 詳細設定 (消費量・安全在庫の変更)</summary>
+    <div class="settings-area">
+      <div class="form-group">
+        <label>常に手元にキープしておきたい予備（何日分）</label>
+        <input type="number" id="safe-stock" value="20" min="0">
+        <p style="font-size: 0.8rem; color: var(--text-sub); margin: 4px 0 0 0;">※新しい箱が届く「直前（箱を開ける前）」の時点で、倉庫に最低限残しておきたい日数です。</p>
+      </div>
+      <p style="font-weight:bold; margin-bottom:8px; color: var(--text-main); font-size: 0.9rem;">1日あたりの消費量設定 (パック)</p>
+      <div class="flex-row">
+        <div class="form-group">
+          <label>300kcal</label>
+          <input type="number" id="consume-300" value="3" min="0">
+        </div>
+        <div class="form-group">
+          <label>400kcal</label>
+          <input type="number" id="consume-400" value="2" min="0">
+        </div>
+        <div class="form-group">
+          <label>500kcal</label>
+          <input type="number" id="consume-500" value="2" min="0">
+        </div>
+      </div>
+      <div class="form-group" style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border);">
+        <label style="display: flex; align-items: flex-start; font-weight: normal; cursor: pointer; color: var(--text-main); -webkit-tap-highlight-color: transparent;">
+          <input type="checkbox" id="auto-balance" checked style="width: 20px; height: 20px; margin: 2px 8px 0 0; flex-shrink: 0;">
+          <span>発注箱数を「消費量の倍数」に揃えてバランスを保つ</span>
+        </label>
+        <p style="font-size: 0.8rem; color: var(--text-sub); margin: 4px 0 0 28px;">※チェックを入れると、300kcalは3箱単位、400/500kcalは2箱単位で計算され、在庫日数のズレを防ぎます。</p>
+      </div>
+    </div>
+  </details>
+
+  <div class="card">
+    <h2 class="card-title">📝 現在の在庫入力</h2>
+    <div class="form-group" style="margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px dashed var(--border);">
+      <label for="input-date" style="color: var(--primary);">🗓️ 在庫を確認した日 (基準日)</label>
+      <input type="date" id="input-date" style="font-weight: bold; color: var(--text-main);">
+      <p style="font-size: 0.8rem; color: var(--text-sub); margin: 4px 0 0 0;">※基本は今日の日付です。過去の在庫データで計算したい場合は変更してください。</p>
+    </div>
+    <div class="form-group">
+      <label>300kcal の在庫 (パック)</label>
+      <input type="number" id="stock-300" min="0" placeholder="例: 25">
+    </div>
+    <div class="form-group">
+      <label>400kcal の在庫 (パック)</label>
+      <input type="number" id="stock-400" min="0" placeholder="例: 18">
+    </div>
+    <div class="form-group">
+      <label>500kcal の在庫 (パック)</label>
+      <input type="number" id="stock-500" min="0" placeholder="例: 18">
+    </div>
+    <button class="primary-btn" onclick="calculateOrder()">計算する</button>
+  </div>
+
+  <div id="result-area">
+    <div class="schedule-info">
+      <p>📅 次回の発注検討予定日: <span id="w1-date" style="font-weight: bold;"></span></p>
+      <p>🚚 その発注分の納品予定日: <span id="w2-date" style="font-weight: bold;"></span></p>
+    </div>
+
+    <!-- 🚨 今回の注文（最優先アクション） -->
+    <div class="card" id="current-order-card" style="border: 3px solid var(--primary); background: #eff6ff;">
+      <h2 class="card-title" style="color: var(--primary); border-bottom-color: var(--primary); display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <span>🚨 今週（直近の水曜日）に注文するもの</span>
+        <span id="current-order-date" style="font-size: 0.95rem; font-weight: normal; color: var(--text-main);"></span>
+      </h2>
+      <div id="current-order-content">
+        <!-- JSで今すぐ発注するものを挿入 -->
+      </div>
+    </div>
+
+    <!-- 📅 今後の予測スケジュール -->
+    <div class="card">
+      <h2 class="card-title" style="border-bottom: 2px solid var(--border);">📅 今後の注文スケジュール (今後5回分)</h2>
+      <p style="font-size: 0.8rem; color: var(--text-sub); margin-top: 6px; margin-bottom: 20px;">
+        ※現在の消費ペースが続いた場合の目安スケジュールです。
+      </p>
+      <div id="upcoming-schedule-list" style="display: flex; flex-direction: column; gap: 16px;">
+        <!-- JSで発注日ごとの予定カードを動的生成 -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    document.getElementById('input-date').value = `${yyyy}-${mm}-${dd}`;
+
+    // すべての数値入力欄をタップ/フォーカスした際に自動全選択する処理
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+      input.addEventListener('focus', function() {
+        setTimeout(() => {
+          this.select();
+        }, 50);
+      });
+      
+      input.addEventListener('click', function() {
+        if (document.activeElement === this) {
+          setTimeout(() => {
+            this.select();
+          }, 50);
+        }
+      });
+    });
+  });
+
+  function calculateOrder() {
+    const inputDateValue = document.getElementById('input-date').value;
+    const baseDate = inputDateValue ? new Date(inputDateValue) : new Date();
+    
+    const day = baseDate.getDay();
+    let diffToOrderDay = (3 - day + 7) % 7; 
+    
+    const w1Date = new Date(baseDate);
+    w1Date.setDate(baseDate.getDate() + diffToOrderDay);
+    
+    const w2Date = new Date(w1Date);
+    w2Date.setDate(w1Date.getDate() + 7);
+
+    const formatDate = (d) => {
+      const days = ['日', '月', '火', '水', '木', '金', '土'];
+      return `${d.getMonth() + 1}月${d.getDate()}日(${days[d.getDay()]})`;
+    };
+
+    document.getElementById('w1-date').textContent = formatDate(w1Date);
+    document.getElementById('w2-date').textContent = formatDate(w2Date);
+
+    const safeStockDays = parseInt(document.getElementById('safe-stock').value) || 20;
+    const autoBalance = document.getElementById('auto-balance').checked;
+    const packPerBox = 20;
+    const items = ['300', '400', '500'];
+
+    let consumes = {};
+    let targets = {};
+    let currentStocks = {}; // 各アイテムの発注前時点の予測在庫
+
+    items.forEach(item => {
+      const stockAtBaseDate = parseInt(document.getElementById(`stock-${item}`).value) || 0;
+      const consume = parseInt(document.getElementById(`consume-${item}`).value) || 0;
+      consumes[item] = consume;
+      targets[item] = consume * safeStockDays; // 常にキープしたい予備数
+      
+      // 発注検討日（W1）時点の発注前在庫
+      const stockW1 = stockAtBaseDate - (consume * diffToOrderDay);
+      currentStocks[item] = stockW1;
+    });
+
+    let simDate = new Date(w1Date);
+    let hasCurrentOrder = false;
+    let currentOrderInfo = null;
+    const upcomingMergedOrders = [];
+
+    // 最大100週間のループでシミュレーションを回す
+    for (let week = 0; week < 100; week++) {
+      let orderThisWeek = {
+        date: new Date(simDate),
+        orders: {}
+      };
+      let hasOrderThisWeek = false;
+
+      items.forEach(item => {
+        const consume = consumes[item];
+        const target = targets[item];
+        if (consume <= 0) return;
+
+        // 【2週間先読みロジック】
+        // 今週（simDate）注文しなかった場合、翌々週（2週間後）に届く直前の在庫を計算する
+        // ＝ 今週の発注前在庫 － 14日分の消費量
+        const stockPrePreNext = currentStocks[item] - (consume * 14);
+
+        // 2週間後に「目標の予備（20日分）」を下回る予測の場合、今週のうちに発注をかける
+        if (stockPrePreNext < target) {
+          const shortageToTarget = target - stockPrePreNext;
+          let minNextBoxes = Math.ceil(shortageToTarget / packPerBox);
+          let nextOrderBoxes = minNextBoxes;
+          
+          if (autoBalance) {
+            nextOrderBoxes = Math.ceil(minNextBoxes / consume) * consume;
+          }
+          
+          // 翌週届く「直前（開ける前）」の予測在庫
+          const stockPreNext = currentStocks[item] - (consume * 7);
+          const arrivalDaysPre = (stockPreNext / consume).toFixed(1).replace(/\.0$/, '');
+
+          // 翌週届いた「直後（補充後）」の総在庫
+          const postStock = stockPreNext + (nextOrderBoxes * packPerBox);
+          const postDays = (postStock / consume).toFixed(1).replace(/\.0$/, '');
+
+          // 納品前に不足（在庫切れ）する可能性がある場合
+          let shortageWarning = 0;
+          if (stockPreNext < 0) {
+            shortageWarning = Math.abs(stockPreNext);
+          }
+
+          orderThisWeek.orders[item] = {
+            boxes: nextOrderBoxes,
+            postStock: postStock,
+            postDays: postDays,
+            arrivalStockPre: stockPreNext,
+            arrivalDaysPre: arrivalDaysPre,
+            shortage: shortageWarning
+          };
+          currentStocks[item] = postStock; // 在庫を補充後に更新
+          hasOrderThisWeek = true;
+        } else {
+          // 発注しない場合はそのまま1週間（7日分）消費される
+          currentStocks[item] = currentStocks[item] - (consume * 7);
+          orderThisWeek.orders[item] = {
+            boxes: 0,
+            postStock: currentStocks[item],
+            postDays: (currentStocks[item] / consume).toFixed(1).replace(/\.0$/, ''),
+            arrivalStockPre: currentStocks[item],
+            arrivalDaysPre: (currentStocks[item] / consume).toFixed(1).replace(/\.0$/, ''),
+            shortage: 0
+          };
+        }
+      });
+
+      if (hasOrderThisWeek) {
+        if (orderThisWeek.date.toDateString() === w1Date.toDateString()) {
+          currentOrderInfo = orderThisWeek;
+          hasCurrentOrder = true;
+        } else {
+          upcomingMergedOrders.push(orderThisWeek);
+        }
+
+        if (upcomingMergedOrders.length >= 5) {
+          break; // 今後5回分が集まったらシミュレーションを終了
+        }
+      }
+
+      simDate.setDate(simDate.getDate() + 7);
+    }
+
+    // 🚨 ❶ 今週（直近の水曜日）注文するものの表示更新
+    const currentContentEl = document.getElementById('current-order-content');
+    document.getElementById('current-order-date').textContent = `発注日: ${formatDate(w1Date)}`;
+
+    if (hasCurrentOrder && currentOrderInfo) {
+      let itemsHtml = '';
+      let nextW2Date = new Date(w1Date);
+      nextW2Date.setDate(w1Date.getDate() + 7);
+      const nextW2MD = `${nextW2Date.getMonth() + 1}/${nextW2Date.getDate()}`;
+
+      items.forEach(item => {
+        const orderInfo = currentOrderInfo.orders[item];
+        const boxes = orderInfo ? orderInfo.boxes : 0;
+        if (boxes > 0) {
+          let warningHtml = '';
+          if (orderInfo.shortage > 0) {
+            warningHtml = `<div class="warning" style="color: var(--danger); font-size: 0.85rem; margin-top: 4px;">⚠️ 納品前に ${orderInfo.shortage} パック不足する恐れがあります</div>`;
+          }
+          
+          const isTargetMet = parseFloat(orderInfo.arrivalDaysPre) >= safeStockDays;
+          const preColor = isTargetMet ? 'var(--success)' : 'var(--danger)';
+
+          itemsHtml += `
+            <div style="display: flex; flex-direction: column; padding: 12px 0; border-bottom: 1px dashed var(--border);">
+              <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <span style="font-weight: bold; font-size: 1.1rem; color: var(--text-main);">${item}kcal</span>
+                <div style="text-align: right;">
+                  <span style="font-weight: 900; color: var(--primary); font-size: 1.6rem;">${boxes}</span><span style="font-size: 0.9rem; font-weight: bold; color: var(--text-main);"> 箱</span>
+                  <span style="font-size: 0.85rem; color: var(--text-sub); margin-left: 6px;">(${boxes * packPerBox}パック)</span>
+                </div>
+              </div>
+              ${warningHtml}
+              <!-- ⏳ 届く直前（開ける前）の在庫を表示 -->
+              <div style="font-size: 0.8rem; color: var(--text-sub); margin-top: 6px; padding-left: 10px; border-left: 3px solid #cbd5e1;">
+                ⏳ 届く直前(${nextW2MD}・開ける前)の予備: <span style="font-weight: bold; color: ${preColor};">${orderInfo.arrivalStockPre}パック (約${orderInfo.arrivalDaysPre}日分)</span>
+              </div>
+              <!-- 📦 届いた直後の総在庫を表示 -->
+              <div style="font-size: 0.8rem; color: var(--success); font-weight: bold; margin-top: 4px; padding-left: 10px; border-left: 3px solid var(--success);">
+                📦 届いた直後(${nextW2MD})の総在庫: ${orderInfo.postStock}パック (約${orderInfo.postDays}日分)
+              </div>
+            </div>
+          `;
+        }
+      });
+      currentContentEl.innerHTML = itemsHtml;
+    } else {
+      currentContentEl.innerHTML = `
+        <div style="text-align: center; padding: 24px 0; color: var(--text-sub);">
+          <div style="font-size: 3.5rem; margin-bottom: 10px;">🎉</div>
+          <p style="font-weight: bold; font-size: 1.15rem; margin: 0; color: var(--success);">今週水曜日（${formatDate(w1Date)}）の発注は不要です！</p>
+          <p style="font-size: 0.85rem; margin: 6px 0 0 0;">現在の在庫は十分に安全水準を保っています。</p>
+        </div>
+      `;
+    }
+
+    // 📅 ❷ 今後5回分のスケジュール結果のHTML動的反映
+    const listEl = document.getElementById('upcoming-schedule-list');
+    listEl.innerHTML = '';
+
+    if (upcomingMergedOrders.length > 0) {
+      upcomingMergedOrders.forEach((order, index) => {
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'schedule-card';
+        cardDiv.style.cssText = 'background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: left; box-shadow: 0 1px 3px rgba(0,0,0,0.05);';
+        
+        const arrivalDate = new Date(order.date);
+        arrivalDate.setDate(order.date.getDate() + 7);
+        const arrivalMD = `${arrivalDate.getMonth() + 1}/${arrivalDate.getDate()}`;
+
+        let itemsHtml = '';
+        items.forEach(item => {
+          const orderInfo = order.orders[item];
+          const boxes = orderInfo ? orderInfo.boxes : 0;
+          if (boxes > 0) {
+            let warningHtml = '';
+            if (orderInfo.shortage > 0) {
+              warningHtml = `<div class="warning" style="text-align: left; margin-top: 2px; color: var(--danger);">⚠️ 納品前に ${orderInfo.shortage} パック不足する恐れがあります</div>`;
+            }
+
+            const isTargetMet = parseFloat(orderInfo.arrivalDaysPre) >= safeStockDays;
+            const preColor = isTargetMet ? 'var(--success)' : 'var(--danger)';
+
+            itemsHtml += `
+              <div class="schedule-row" style="padding: 6px 0;">
+                <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                  <span style="font-weight: bold; color: var(--text-main); font-size: 0.95rem;">${item}kcal</span>
+                  <div style="text-align: right;">
+                    <span style="font-weight: bold; color: var(--primary); font-size: 1.15rem;">${boxes}</span><span style="font-size: 0.8rem; color: var(--text-main);">箱</span>
+                    <span style="font-size: 0.75rem; color: var(--text-sub); margin-left: 4px;">(${boxes * packPerBox}パック)</span>
+                  </div>
+                </div>
+                ${warningHtml}
+                <!-- ⏳ 届く直前（開ける前）の在庫を表示 -->
+                <div style="font-size: 0.75rem; color: var(--text-sub); padding-left: 8px; border-left: 2px solid #cbd5e1; margin-top: 2px;">
+                  ⏳ 届く直前(${arrivalMD}・開ける前)の予備: <span style="font-weight: bold; color: ${preColor};">${orderInfo.arrivalStockPre}パック (約${orderInfo.arrivalDaysPre}日分)</span>
+                </div>
+                <!-- 📦 届いた直後の総在庫を表示 -->
+                <div style="font-size: 0.75rem; color: var(--text-sub); padding-left: 8px; border-left: 2px solid var(--success); margin-top: 2px;">
+                  📦 届いた直後(${arrivalMD})の予測総在庫: ${orderInfo.postStock}パック (約${orderInfo.postDays}日分)
+                </div>
+              </div>
+            `;
+          }
+        });
+
+        cardDiv.innerHTML = `
+          <div style="font-weight: bold; color: var(--primary); border-bottom: 2px solid var(--bg); padding-bottom: 8px; margin-bottom: 10px; font-size: 0.95rem; display: flex; flex-direction: column; gap: 4px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="display:inline-block; width: 22px; height: 22px; background: #93c5fd; color: #1e3a8a; border-radius: 50%; text-align: center; line-height: 22px; font-size: 0.75rem; font-weight: bold;">${index + 1}</span>
+              <span>発注予定日: <span style="color: var(--text-main);">${formatDate(order.date)}</span></span>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-sub); margin-left: 30px; font-weight: normal;">
+              ➔ 届く予定日: <span style="color: var(--text-main); font-weight: bold;">${formatDate(arrivalDate)}</span>
+            </div>
+          </div>
+          <div>
+            ${itemsHtml}
+          </div>
+        `;
+        listEl.appendChild(cardDiv);
+      });
+    } else {
+      listEl.innerHTML = '<p style="text-align: center; font-weight: bold; color: var(--text-sub); margin: 20px 0;">今後、追加の発注予定はありません</p>';
+    }
+
+    // 結果エリアを表示
+    document.getElementById('result-area').style.display = 'block';
+  }
+</script>
+</body>
+</html>
