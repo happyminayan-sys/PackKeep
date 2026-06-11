@@ -521,10 +521,6 @@
         const packPerBox = packPerBoxes[item.id];
         if (consume <= 0) return;
 
-        // 翌週届く「直前（開ける前）」の予測在庫
-        const stockPreNext = currentStocks[item.id] - (consume * 7);
-        const arrivalDaysPre = (stockPreNext / consume).toFixed(1).replace(/\.0$/, '');
-
         // 【2週間先読みロジック】
         // 今週（simDate）注文しなかった場合、翌々週（2週間後）に届く直前の在庫を計算する
         const stockPrePreNext = currentStocks[item.id] - (consume * 14);
@@ -541,11 +537,14 @@
           if (autoBalance) {
             nextOrderBoxes = Math.ceil(minNextBoxes / consume) * consume;
           }
-          
-          if (stockPreNext < 0) {
-            shortageWarning = Math.abs(stockPreNext);
-          }
           hasOrderThisWeek = true;
+        }
+
+        const stockPreNext = currentStocks[item.id] - (consume * 7);
+        const arrivalDaysPre = (stockPreNext / consume).toFixed(1).replace(/\.0$/, '');
+
+        if (stockPreNext < 0) {
+          shortageWarning = Math.abs(stockPreNext);
         }
 
         // 翌週届いた「直後（補充後）」の総在庫
@@ -609,6 +608,26 @@
           `;
         }
         
+        // 🗓️ 届く直前・届いた直後の具体的な在庫切れ予測日の計算
+        let limitPreStr = '';
+        let limitPostStr = '';
+        const consume = item.consume;
+        if (consume > 0) {
+          const preDaysNum = parseFloat(orderInfo.arrivalDaysPre);
+          const postDaysNum = parseFloat(orderInfo.postDays);
+          
+          if (!isNaN(preDaysNum) && preDaysNum >= 0) {
+            const dPre = new Date(nextW2Date);
+            dPre.setDate(dPre.getDate() + Math.round(preDaysNum));
+            limitPreStr = `・${dPre.getMonth() + 1}月${dPre.getDate()}日まで`;
+          }
+          if (!isNaN(postDaysNum) && postDaysNum >= 0) {
+            const dPost = new Date(nextW2Date);
+            dPost.setDate(dPost.getDate() + Math.round(postDaysNum));
+            limitPostStr = `・${dPost.getMonth() + 1}月${dPost.getDate()}日まで`;
+          }
+        }
+
         const isTargetMet = parseFloat(orderInfo.arrivalDaysPre) >= safeStockDays;
         const preColorClass = isTargetMet ? 'text-emerald-700' : 'text-brand-warning';
 
@@ -626,17 +645,17 @@
             <div class="grid grid-cols-2 gap-2 text-[11px] pt-1 font-medium">
               <div class="bg-slate-50 rounded-lg p-2.5 border border-slate-150">
                 <span class="flex items-center gap-1 text-brand-muted mb-0.5">
-                  <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <svg class="w-3.5 h-3.5 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                   届く直前 (${nextW2MD})
                 </span>
-                <span class="font-bold ${preColorClass}">${orderInfo.arrivalStockPre}パック (約${orderInfo.arrivalDaysPre}日分)</span>
+                <span class="font-bold ${preColorClass}">${orderInfo.arrivalStockPre}パック (約${orderInfo.arrivalDaysPre}日分${limitPreStr})</span>
               </div>
               <div class="bg-slate-50 rounded-lg p-2.5 border border-slate-150">
                 <span class="flex items-center gap-1 text-brand-muted mb-0.5">
                   <svg class="w-3.5 h-3.5 shrink-0 text-brand-sage" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                   届いた直後 (${nextW2MD})
                 </span>
-                <span class="font-bold text-emerald-700">${orderInfo.postStock}パック (約${orderInfo.postDays}日分)</span>
+                <span class="font-bold text-emerald-700">${orderInfo.postStock}パック (約${orderInfo.postDays}日分${limitPostStr})</span>
               </div>
             </div>
           </div>
@@ -660,13 +679,30 @@
         let itemsHtml = '';
         itemsData.forEach(item => {
           const orderInfo = order.orders[item.id];
-          if (!orderInfo) return; // 1日消費量が0などの場合はスキップ
-          
-          const boxes = orderInfo.boxes;
+          const boxes = orderInfo ? orderInfo.boxes : 0;
           const packPerBox = packPerBoxes[item.id];
+          
+          let limitPreStr = '';
+          let limitPostStr = '';
+          const consume = item.consume;
+          if (consume > 0 && orderInfo) {
+            const preDaysNum = parseFloat(orderInfo.arrivalDaysPre);
+            const postDaysNum = parseFloat(orderInfo.postDays);
+            
+            if (!isNaN(preDaysNum) && preDaysNum >= 0) {
+              const dPre = new Date(arrivalDate);
+              dPre.setDate(dPre.getDate() + Math.round(preDaysNum));
+              limitPreStr = `・${dPre.getMonth() + 1}月${dPre.getDate()}日まで`;
+            }
+            if (!isNaN(postDaysNum) && postDaysNum >= 0) {
+              const dPost = new Date(arrivalDate);
+              dPost.setDate(dPost.getDate() + Math.round(postDaysNum));
+              limitPostStr = `・${dPost.getMonth() + 1}月${dPost.getDate()}日まで`;
+            }
+          }
 
           let warningHtml = '';
-          if (orderInfo.shortage > 0) {
+          if (orderInfo && orderInfo.shortage > 0) {
             warningHtml = `
               <div class="flex items-center gap-1 mt-1 text-brand-warning font-bold text-[10px]">
                 <span>⚠️ 新しい箱が届く前に ${orderInfo.shortage} パック不足</span>
@@ -674,28 +710,33 @@
             `;
           }
 
-          const isTargetMet = parseFloat(orderInfo.arrivalDaysPre) >= safeStockDays;
+          const isTargetMet = orderInfo ? (parseFloat(orderInfo.arrivalDaysPre) >= safeStockDays) : true;
           const preColorClass = isTargetMet ? 'text-emerald-700' : 'text-brand-warning';
+          const displayBoxes = orderInfo ? orderInfo.boxes : 0;
+          const displayPostStock = orderInfo ? orderInfo.postStock : 0;
+          const displayPostDays = orderInfo ? orderInfo.postDays : '0';
+          const displayArrivalStockPre = orderInfo ? orderInfo.arrivalStockPre : 0;
+          const displayArrivalDaysPre = orderInfo ? orderInfo.arrivalDaysPre : '0';
 
           itemsHtml += `
             <div class="py-3 border-b border-brand-border/30 last:border-0 last:pb-0 last:pt-3 space-y-1.5">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-brand-text">${item.kcal}kcal</span>
                 <div class="text-right">
-                  <span class="text-base font-extrabold text-brand-text tracking-tight">${boxes}</span>
+                  <span class="text-base font-extrabold text-brand-text tracking-tight">${displayBoxes}</span>
                   <span class="text-[10px] font-semibold text-brand-text/80 ml-0.5">箱</span>
-                  <span class="text-[10px] text-brand-muted ml-1">(${boxes * packPerBox}パック)</span>
+                  <span class="text-[10px] text-brand-muted ml-1">(${displayBoxes * packPerBox}パック)</span>
                 </div>
               </div>
               ${warningHtml}
               <div class="grid grid-cols-2 gap-2 text-[10px] pt-1 font-semibold leading-normal">
                 <div class="bg-white rounded-lg p-2 border border-brand-border/40 shadow-sm">
                   <span class="block text-brand-muted mb-0.5 font-medium">⏳ 届く直前 (${arrivalMD})</span>
-                  <span class="${preColorClass}">${orderInfo.arrivalStockPre}パック (${orderInfo.arrivalDaysPre}日分)</span>
+                  <span class="${preColorClass}">${displayArrivalStockPre}パック (${displayArrivalDaysPre}日分${limitPreStr})</span>
                 </div>
                 <div class="bg-white rounded-lg p-2 border border-brand-border/40 shadow-sm">
                   <span class="block text-brand-muted mb-0.5 font-medium">📦 届いた直後 (${arrivalMD})</span>
-                  <span class="text-emerald-700">${orderInfo.postStock}パック (${orderInfo.postDays}日分)</span>
+                  <span class="text-emerald-700">${displayPostStock}パック (${displayPostDays}日分${limitPostStr})</span>
                 </div>
               </div>
             </div>
