@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>栄養パック発注管理システム</title>
+<title>パックキープ | 栄養パック発注シミュレーター</title>
 
   <!-- 📱 スマホアプリ化（ホーム画面追加・全画面起動）用の設定 -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="パック発注">
+  <meta name="apple-mobile-web-app-title" content="パックキープ">
   <!-- アプリのアイコン用画像 -->
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/679/679821.png">
   <meta name="mobile-web-app-capable" content="yes">
@@ -39,10 +39,11 @@
     margin: 0 auto;
   }
   h1 {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 24px;
     color: var(--text-main);
+    font-weight: 800;
   }
   .card {
     background: var(--card-bg);
@@ -125,6 +126,72 @@
     padding-top: 16px;
     border-top: 1px dashed var(--border);
   }
+  
+  /* 📦 種類管理セクション用スタイル */
+  .config-item-list {
+    margin-bottom: 16px;
+  }
+  .config-item-row {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .config-item-fields {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .config-item-fields > div {
+    flex: 1;
+  }
+  .config-item-fields label {
+    font-size: 0.75rem;
+    color: var(--text-sub);
+    margin-bottom: 4px;
+    font-weight: normal;
+  }
+  .config-item-fields input {
+    width: 100%;
+    padding: 8px;
+    font-size: 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    box-sizing: border-box;
+  }
+  .btn-danger {
+    background-color: #fef2f2;
+    color: var(--danger);
+    border: 1px solid #fecaca;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: bold;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-danger:hover {
+    background-color: #fee2e2;
+  }
+  .btn-secondary {
+    display: inline-block;
+    background-color: #f1f5f9;
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: bold;
+    margin-top: 4px;
+    margin-bottom: 16px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-secondary:hover {
+    background-color: #e2e8f0;
+  }
+  
   #result-area {
     display: none;
   }
@@ -178,37 +245,37 @@
 </head>
 <body>
 <div class="container">
-  <h1>📦 栄養パック発注管理</h1>
+  <h1>
+    📦 パックキープ
+    <span style="display: block; font-size: 0.85rem; font-weight: normal; color: var(--text-sub); margin-top: 4px;">
+      〜 栄養パック発注管理シミュレーター 〜
+    </span>
+  </h1>
 
-  <details>
-    <summary>⚙️ 詳細設定 (消費量・安全在庫の変更)</summary>
+  <details id="settings-details">
+    <summary>⚙️ 詳細設定 (消費量・パックの種類変更など)</summary>
     <div class="settings-area">
       <div class="form-group">
         <label>常に手元にキープしておきたい予備（何日分）</label>
         <input type="number" id="safe-stock" value="20" min="0">
         <p style="font-size: 0.8rem; color: var(--text-sub); margin: 4px 0 0 0;">※新しい箱が届く「直前（箱を開ける前）」の時点で、倉庫に最低限残しておきたい日数です。</p>
       </div>
-      <p style="font-weight:bold; margin-bottom:8px; color: var(--text-main); font-size: 0.9rem;">1日あたりの消費量設定 (パック)</p>
-      <div class="flex-row">
-        <div class="form-group">
-          <label>300kcal</label>
-          <input type="number" id="consume-300" value="3" min="0">
-        </div>
-        <div class="form-group">
-          <label>400kcal</label>
-          <input type="number" id="consume-400" value="2" min="0">
-        </div>
-        <div class="form-group">
-          <label>500kcal</label>
-          <input type="number" id="consume-500" value="2" min="0">
-        </div>
+
+      <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">
+        <p style="font-weight:bold; margin-bottom:8px; color: var(--text-main); font-size: 0.95rem;">📦 パックの種類と1日の消費設定 (最大4個まで)</p>
+        
+        <!-- 動的登録エリア -->
+        <div id="config-items-container" class="config-item-list"></div>
+        
+        <button id="add-item-btn" class="btn-secondary" onclick="addItem()">＋ 新しい種類を追加する</button>
       </div>
-      <div class="form-group" style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border);">
+
+      <div class="form-group" style="margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--border);">
         <label style="display: flex; align-items: flex-start; font-weight: normal; cursor: pointer; color: var(--text-main); -webkit-tap-highlight-color: transparent;">
           <input type="checkbox" id="auto-balance" checked style="width: 20px; height: 20px; margin: 2px 8px 0 0; flex-shrink: 0;">
           <span>発注箱数を「消費量の倍数」に揃えてバランスを保つ</span>
         </label>
-        <p style="font-size: 0.8rem; color: var(--text-sub); margin: 4px 0 0 28px;">※チェックを入れると、300kcalは3箱単位、400/500kcalは2箱単位で計算され、在庫日数のズレを防ぎます。</p>
+        <p style="font-size: 0.8rem; color: var(--text-sub); margin: 4px 0 0 28px;">※チェックを入れると、各種類の1日あたりの消費量に応じて発注箱数の最小単位が自動計算され、在庫のズレを防ぎます。</p>
       </div>
     </div>
   </details>
@@ -220,18 +287,10 @@
       <input type="date" id="input-date" style="font-weight: bold; color: var(--text-main);">
       <p style="font-size: 0.8rem; color: var(--text-sub); margin: 4px 0 0 0;">※基本は今日の日付です。過去の在庫データで計算したい場合は変更してください。</p>
     </div>
-    <div class="form-group">
-      <label>300kcal の在庫 (パック)</label>
-      <input type="number" id="stock-300" min="0" placeholder="例: 25">
-    </div>
-    <div class="form-group">
-      <label>400kcal の在庫 (パック)</label>
-      <input type="number" id="stock-400" min="0" placeholder="例: 18">
-    </div>
-    <div class="form-group">
-      <label>500kcal の在庫 (パック)</label>
-      <input type="number" id="stock-500" min="0" placeholder="例: 18">
-    </div>
+    
+    <!-- JSで設定に基づき動的に生成される在庫入力欄のコンテナ -->
+    <div id="stock-inputs-container"></div>
+    
     <button class="primary-btn" onclick="calculateOrder()">計算する</button>
   </div>
 
@@ -266,31 +325,139 @@
 </div>
 
 <script>
+  // 栄養パックのデフォルトマスタ
+  let itemsData = [
+    { id: 1, kcal: 300, packPerBox: 20, consume: 3 },
+    { id: 2, kcal: 400, packPerBox: 20, consume: 2 },
+    { id: 3, kcal: 500, packPerBox: 20, consume: 2 }
+  ];
+
   window.addEventListener('DOMContentLoaded', () => {
+    // 基準日の初期値設定
     const today = new Date();
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
     document.getElementById('input-date').value = `${yyyy}-${mm}-${dd}`;
 
-    // すべての数値入力欄をタップ/フォーカスした際に自動全選択する処理
-    document.querySelectorAll('input[type="number"]').forEach(input => {
+    // 各品目の詳細設定及び入力欄の初期レンダリング
+    renderConfigItems();
+    renderStockInputs();
+  });
+
+  // 詳細設定の中の「品目登録リスト」を描画
+  function renderConfigItems() {
+    const container = document.getElementById('config-items-container');
+    container.innerHTML = '';
+
+    itemsData.forEach((item, index) => {
+      const row = document.createElement('div');
+      row.className = 'config-item-row';
+      row.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: bold; font-size: 0.9rem; color: var(--text-main);">種類 ${index + 1}</span>
+          ${itemsData.length > 1 ? `<button class="btn-danger" onclick="removeItem(${item.id})">削除</button>` : ''}
+        </div>
+        <div class="config-item-fields">
+          <div>
+            <label>カロリー</label>
+            <input type="number" value="${item.kcal}" oninput="updateItemField(${item.id}, 'kcal', this.value)" min="0" placeholder="kcal">
+          </div>
+          <div>
+            <label>1箱の個数</label>
+            <input type="number" value="${item.packPerBox}" oninput="updateItemField(${item.id}, 'packPerBox', this.value)" min="1" placeholder="パック">
+          </div>
+          <div>
+            <label>1日消費量</label>
+            <input type="number" value="${item.consume}" oninput="updateItemField(${item.id}, 'consume', this.value)" min="0" placeholder="パック">
+          </div>
+        </div>
+      `;
+      container.appendChild(row);
+    });
+
+    // 「追加する」ボタンの最大上限（4個）による制御
+    const addBtn = document.getElementById('add-item-btn');
+    if (itemsData.length >= 4) {
+      addBtn.style.display = 'none';
+    } else {
+      addBtn.style.display = 'inline-block';
+    }
+  }
+
+  // 「在庫入力」欄を設定値に合わせ動的描画（入力中だった値はキープする）
+  function renderStockInputs() {
+    const container = document.getElementById('stock-inputs-container');
+    const savedStocks = {};
+    
+    // 現在の画面の入力値を一度退避
+    itemsData.forEach(item => {
+      const el = document.getElementById(`stock-${item.id}`);
+      if (el) {
+        savedStocks[item.id] = el.value;
+      }
+    });
+
+    container.innerHTML = '';
+    itemsData.forEach(item => {
+      const val = savedStocks[item.id] !== undefined ? savedStocks[item.id] : '';
+      const formGroup = document.createElement('div');
+      formGroup.className = 'form-group';
+      formGroup.innerHTML = `
+        <label>${item.kcal}kcal の在庫 (パック)</label>
+        <input type="number" id="stock-${item.id}" min="0" placeholder="例: 18" value="${val}">
+      `;
+      container.appendChild(formGroup);
+    });
+
+    // 動的に生成されたすべての数値入力欄に対し、タップした際の自動全選択をアタッチ
+    container.querySelectorAll('input[type="number"]').forEach(input => {
       input.addEventListener('focus', function() {
-        setTimeout(() => {
-          this.select();
-        }, 50);
+        setTimeout(() => { this.select(); }, 50);
       });
-      
       input.addEventListener('click', function() {
         if (document.activeElement === this) {
-          setTimeout(() => {
-            this.select();
-          }, 50);
+          setTimeout(() => { this.select(); }, 50);
         }
       });
     });
-  });
+  }
 
+  // 設定項目（カロリー、箱容量、消費量）が変更された際のデータ同期
+  function updateItemField(id, field, value) {
+    const item = itemsData.find(i => i.id === id);
+    if (item) {
+      item[field] = parseInt(value) || 0;
+      // カロリー名が変化した場合は、在庫ラベルを反映するために在庫欄を再描画する
+      if (field === 'kcal') {
+        renderStockInputs();
+      }
+    }
+  }
+
+  // 品目の新規追加（上限4個、デフォルト値として600kcal, 20個パックを充当）
+  function addItem() {
+    if (itemsData.length >= 4) return;
+    const newId = Date.now();
+    itemsData.push({
+      id: newId,
+      kcal: 600,
+      packPerBox: 20,
+      consume: 1
+    });
+    renderConfigItems();
+    renderStockInputs();
+  }
+
+  // 品目の削除
+  function removeItem(id) {
+    if (itemsData.length <= 1) return;
+    itemsData = itemsData.filter(item => item.id !== id);
+    renderConfigItems();
+    renderStockInputs();
+  }
+
+  // 🧮 発注シミュレーションのメインエンジン（2週間先読みモデル）
   function calculateOrder() {
     const inputDateValue = document.getElementById('input-date').value;
     const baseDate = inputDateValue ? new Date(inputDateValue) : new Date();
@@ -314,22 +481,24 @@
 
     const safeStockDays = parseInt(document.getElementById('safe-stock').value) || 20;
     const autoBalance = document.getElementById('auto-balance').checked;
-    const packPerBox = 20;
-    const items = ['300', '400', '500'];
 
     let consumes = {};
     let targets = {};
-    let currentStocks = {}; // 各アイテムの発注前時点の予測在庫
+    let currentStocks = {}; // シミュレーション中の、各品目の発注前在庫（W1時点）
+    let packPerBoxes = {};
 
-    items.forEach(item => {
-      const stockAtBaseDate = parseInt(document.getElementById(`stock-${item}`).value) || 0;
-      const consume = parseInt(document.getElementById(`consume-${item}`).value) || 0;
-      consumes[item] = consume;
-      targets[item] = consume * safeStockDays; // 常にキープしたい予備数
+    itemsData.forEach(item => {
+      const stockAtBaseDate = parseInt(document.getElementById(`stock-${item.id}`).value) || 0;
+      const consume = item.consume;
+      const packPerBox = item.packPerBox || 20;
+
+      consumes[item.id] = consume;
+      packPerBoxes[item.id] = packPerBox;
+      targets[item.id] = consume * safeStockDays; // 倉庫に残しておきたい目標予備数
       
-      // 発注検討日（W1）時点の発注前在庫
+      // 発注日（W1）直前の発注前の予測在庫
       const stockW1 = stockAtBaseDate - (consume * diffToOrderDay);
-      currentStocks[item] = stockW1;
+      currentStocks[item.id] = stockW1;
     });
 
     let simDate = new Date(w1Date);
@@ -337,7 +506,7 @@
     let currentOrderInfo = null;
     const upcomingMergedOrders = [];
 
-    // 最大100週間のループでシミュレーションを回す
+    // 最大100週間のシミュレーションを実行
     for (let week = 0; week < 100; week++) {
       let orderThisWeek = {
         date: new Date(simDate),
@@ -345,41 +514,41 @@
       };
       let hasOrderThisWeek = false;
 
-      items.forEach(item => {
-        const consume = consumes[item];
-        const target = targets[item];
+      itemsData.forEach(item => {
+        const consume = consumes[item.id];
+        const target = targets[item.id];
+        const packPerBox = packPerBoxes[item.id];
         if (consume <= 0) return;
 
-        // 【2週間先読みロジック】
-        // 今週（simDate）注文しなかった場合、翌々週（2週間後）に届く直前の在庫を計算する
-        // ＝ 今週の発注前在庫 － 14日分の消費量
-        const stockPrePreNext = currentStocks[item] - (consume * 14);
+        // 【2週間先読みロジック】今週見送った場合、再来週（2週間後）届く直前にどうなっているか
+        // ＝ 現在の在庫 － 14日分の消費
+        const stockPrePreNext = currentStocks[item.id] - (consume * 14);
 
-        // 2週間後に「目標の予備（20日分）」を下回る予測の場合、今週のうちに発注をかける
+        // 2週間後に目標予備を下回ってしまうなら、今週発注を確定する
         if (stockPrePreNext < target) {
           const shortageToTarget = target - stockPrePreNext;
           let minNextBoxes = Math.ceil(shortageToTarget / packPerBox);
           let nextOrderBoxes = minNextBoxes;
           
           if (autoBalance) {
+            // 消費量の倍数の箱数（300kcalなら3箱単位、400kcalなら2箱単位など）に揃える
             nextOrderBoxes = Math.ceil(minNextBoxes / consume) * consume;
           }
           
           // 翌週届く「直前（開ける前）」の予測在庫
-          const stockPreNext = currentStocks[item] - (consume * 7);
+          const stockPreNext = currentStocks[item.id] - (consume * 7);
           const arrivalDaysPre = (stockPreNext / consume).toFixed(1).replace(/\.0$/, '');
 
           // 翌週届いた「直後（補充後）」の総在庫
           const postStock = stockPreNext + (nextOrderBoxes * packPerBox);
           const postDays = (postStock / consume).toFixed(1).replace(/\.0$/, '');
 
-          // 納品前に不足（在庫切れ）する可能性がある場合
           let shortageWarning = 0;
           if (stockPreNext < 0) {
             shortageWarning = Math.abs(stockPreNext);
           }
 
-          orderThisWeek.orders[item] = {
+          orderThisWeek.orders[item.id] = {
             boxes: nextOrderBoxes,
             postStock: postStock,
             postDays: postDays,
@@ -387,17 +556,17 @@
             arrivalDaysPre: arrivalDaysPre,
             shortage: shortageWarning
           };
-          currentStocks[item] = postStock; // 在庫を補充後に更新
+          currentStocks[item.id] = postStock; // 在庫補充
           hasOrderThisWeek = true;
         } else {
-          // 発注しない場合はそのまま1週間（7日分）消費される
-          currentStocks[item] = currentStocks[item] - (consume * 7);
-          orderThisWeek.orders[item] = {
+          // 発注をスルーする場合、1週間（7日分）消費されるのみ
+          currentStocks[item.id] = currentStocks[item.id] - (consume * 7);
+          orderThisWeek.orders[item.id] = {
             boxes: 0,
-            postStock: currentStocks[item],
-            postDays: (currentStocks[item] / consume).toFixed(1).replace(/\.0$/, ''),
-            arrivalStockPre: currentStocks[item],
-            arrivalDaysPre: (currentStocks[item] / consume).toFixed(1).replace(/\.0$/, ''),
+            postStock: currentStocks[item.id],
+            postDays: (currentStocks[item.id] / consume).toFixed(1).replace(/\.0$/, ''),
+            arrivalStockPre: currentStocks[item.id],
+            arrivalDaysPre: (currentStocks[item.id] / consume).toFixed(1).replace(/\.0$/, ''),
             shortage: 0
           };
         }
@@ -412,14 +581,14 @@
         }
 
         if (upcomingMergedOrders.length >= 5) {
-          break; // 今後5回分が集まったらシミュレーションを終了
+          break; // 5回分が集まった時点で終了
         }
       }
 
       simDate.setDate(simDate.getDate() + 7);
     }
 
-    // 🚨 ❶ 今週（直近の水曜日）注文するものの表示更新
+    // 🚨 ❶ 今週注文するもののUI表示更新
     const currentContentEl = document.getElementById('current-order-content');
     document.getElementById('current-order-date').textContent = `発注日: ${formatDate(w1Date)}`;
 
@@ -429,9 +598,10 @@
       nextW2Date.setDate(w1Date.getDate() + 7);
       const nextW2MD = `${nextW2Date.getMonth() + 1}/${nextW2Date.getDate()}`;
 
-      items.forEach(item => {
-        const orderInfo = currentOrderInfo.orders[item];
+      itemsData.forEach(item => {
+        const orderInfo = currentOrderInfo.orders[item.id];
         const boxes = orderInfo ? orderInfo.boxes : 0;
+        const packPerBox = packPerBoxes[item.id];
         if (boxes > 0) {
           let warningHtml = '';
           if (orderInfo.shortage > 0) {
@@ -444,18 +614,16 @@
           itemsHtml += `
             <div style="display: flex; flex-direction: column; padding: 12px 0; border-bottom: 1px dashed var(--border);">
               <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                <span style="font-weight: bold; font-size: 1.1rem; color: var(--text-main);">${item}kcal</span>
+                <span style="font-weight: bold; font-size: 1.1rem; color: var(--text-main);">${item.kcal}kcal</span>
                 <div style="text-align: right;">
                   <span style="font-weight: 900; color: var(--primary); font-size: 1.6rem;">${boxes}</span><span style="font-size: 0.9rem; font-weight: bold; color: var(--text-main);"> 箱</span>
                   <span style="font-size: 0.85rem; color: var(--text-sub); margin-left: 6px;">(${boxes * packPerBox}パック)</span>
                 </div>
               </div>
               ${warningHtml}
-              <!-- ⏳ 届く直前（開ける前）の在庫を表示 -->
               <div style="font-size: 0.8rem; color: var(--text-sub); margin-top: 6px; padding-left: 10px; border-left: 3px solid #cbd5e1;">
                 ⏳ 届く直前(${nextW2MD}・開ける前)の予備: <span style="font-weight: bold; color: ${preColor};">${orderInfo.arrivalStockPre}パック (約${orderInfo.arrivalDaysPre}日分)</span>
               </div>
-              <!-- 📦 届いた直後の総在庫を表示 -->
               <div style="font-size: 0.8rem; color: var(--success); font-weight: bold; margin-top: 4px; padding-left: 10px; border-left: 3px solid var(--success);">
                 📦 届いた直後(${nextW2MD})の総在庫: ${orderInfo.postStock}パック (約${orderInfo.postDays}日分)
               </div>
@@ -474,7 +642,7 @@
       `;
     }
 
-    // 📅 ❷ 今後5回分のスケジュール結果のHTML動的反映
+    // 📅 ❷ 今後5回分のスケジュールリストのUI描画
     const listEl = document.getElementById('upcoming-schedule-list');
     listEl.innerHTML = '';
 
@@ -489,9 +657,10 @@
         const arrivalMD = `${arrivalDate.getMonth() + 1}/${arrivalDate.getDate()}`;
 
         let itemsHtml = '';
-        items.forEach(item => {
-          const orderInfo = order.orders[item];
+        itemsData.forEach(item => {
+          const orderInfo = order.orders[item.id];
           const boxes = orderInfo ? orderInfo.boxes : 0;
+          const packPerBox = packPerBoxes[item.id];
           if (boxes > 0) {
             let warningHtml = '';
             if (orderInfo.shortage > 0) {
@@ -504,18 +673,16 @@
             itemsHtml += `
               <div class="schedule-row" style="padding: 6px 0;">
                 <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-                  <span style="font-weight: bold; color: var(--text-main); font-size: 0.95rem;">${item}kcal</span>
+                  <span style="font-weight: bold; color: var(--text-main); font-size: 0.95rem;">${item.kcal}kcal</span>
                   <div style="text-align: right;">
                     <span style="font-weight: bold; color: var(--primary); font-size: 1.15rem;">${boxes}</span><span style="font-size: 0.8rem; color: var(--text-main);">箱</span>
                     <span style="font-size: 0.75rem; color: var(--text-sub); margin-left: 4px;">(${boxes * packPerBox}パック)</span>
                   </div>
                 </div>
                 ${warningHtml}
-                <!-- ⏳ 届く直前（開ける前）の在庫を表示 -->
                 <div style="font-size: 0.75rem; color: var(--text-sub); padding-left: 8px; border-left: 2px solid #cbd5e1; margin-top: 2px;">
                   ⏳ 届く直前(${arrivalMD}・開ける前)の予備: <span style="font-weight: bold; color: ${preColor};">${orderInfo.arrivalStockPre}パック (約${orderInfo.arrivalDaysPre}日分)</span>
                 </div>
-                <!-- 📦 届いた直後の総在庫を表示 -->
                 <div style="font-size: 0.75rem; color: var(--text-sub); padding-left: 8px; border-left: 2px solid var(--success); margin-top: 2px;">
                   📦 届いた直後(${arrivalMD})の予測総在庫: ${orderInfo.postStock}パック (約${orderInfo.postDays}日分)
                 </div>
@@ -544,7 +711,7 @@
       listEl.innerHTML = '<p style="text-align: center; font-weight: bold; color: var(--text-sub); margin: 20px 0;">今後、追加の発注予定はありません</p>';
     }
 
-    // 結果エリアを表示
+    // 結果表示領域の開示
     document.getElementById('result-area').style.display = 'block';
   }
 </script>
