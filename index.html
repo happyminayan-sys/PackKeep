@@ -3,329 +3,239 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>パックキープ | 栄養パック発注シミュレーター</title>
+<title>パックキープ | 栄養パック発注管理シミュレーター</title>
 
-  <!-- 📱 スマホアプリ化（ホーム画面追加・全画面起動）用の設定 -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="パックキープ">
-  <!-- アプリのアイコン用画像 -->
-  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/679/679821.png">
-  <meta name="mobile-web-app-capable" content="yes">
+<!-- 📱 スマホアプリ化（ホーム画面追加・全画面起動）用の設定 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="パックキープ">
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/679/679821.png">
+<meta name="mobile-web-app-capable" content="yes">
+
+<!-- Tailwind CSS & Google Fonts のロード -->
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          brand: {
+            text: '#5c504d',      /* 少し明るさを加えた柔らかいココアブラウン */
+            muted: '#a89895',     /* 軽やかで澄んだモーヴピンクグレー */
+            border: '#fbf0ed',    /* 桜の花びらの境界線のようなサクラホワイト */
+            lightBg: '#fffdfd',   /* 真っ白に極めて近く、ほんのりピンクを帯びたミルク色 */
+            sage: '#e59fa4',      /* 暗さを完全に抜いた、澄み切った明るいサクラピンク */
+            sageHover: '#d48a8f', /* 明るく上品なローズサクラ */
+            sageLight: '#fff3f3', /* ふんわり明るい薄サクラ色 */
+            darkSage: '#ffffff',  /* 今週のカード背景を「白」にし、画面全体をパッと明るく */
+            warning: '#eb7b80',   /* 優しい明るさのベリーコーラル（警告色） */
+            warningBg: '#fff8f8', /* 非常に明るく澄んだサクラ警告背景 */
+            warningBorder: '#fde5e6',
+            success: '#5fa18f'    /* 澄んだ明るいお茶のようなライトアッシュグリーン */
+          }
+        },
+        fontFamily: {
+          sans: ['Noto Sans JP', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        }
+      }
+    }
+  }
+</script>
 
 <style>
-  :root {
-    --primary: #2563eb;
-    --primary-hover: #1d4ed8;
-    --bg: #f8fafc;
-    --card-bg: #ffffff;
-    --text-main: #1e293b;
-    --text-sub: #64748b;
-    --border: #e2e8f0;
-    --danger: #ef4444;
-    --success: #10b981;
-  }
   body {
-    font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-    background-color: var(--bg);
-    color: var(--text-main);
-    line-height: 1.6;
-    padding: 20px 10px;
-    margin: 0;
+    -webkit-tap-highlight-color: transparent;
     overscroll-behavior-y: contain; 
   }
-  .container {
-    max-width: 600px;
-    margin: 0 auto;
-  }
-  h1 {
-    font-size: 1.6rem;
-    text-align: center;
-    margin-bottom: 24px;
-    color: var(--text-main);
-    font-weight: 800;
-  }
-  .card {
-    background: var(--card-bg);
-    border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  }
-  .card-title {
-    font-size: 1.2rem;
-    font-weight: bold;
-    margin-top: 0;
-    margin-bottom: 16px;
-    border-bottom: 2px solid var(--border);
-    padding-bottom: 8px;
-  }
-  .form-group {
-    margin-bottom: 16px;
-  }
-  .form-group label {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 8px;
-    color: var(--text-main);
-  }
-  .form-group input[type="date"],
-  .form-group input[type="number"] {
-    width: 100%;
-    padding: 12px;
-    font-size: 1rem;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    box-sizing: border-box;
-    transition: border-color 0.2s;
+  /* 入力欄の微調整 */
+  input[type="number"], input[type="date"], select {
     -webkit-appearance: none;
-  }
-  .form-group input:focus {
-    border-color: var(--primary);
-    outline: none;
-  }
-  .flex-row {
-    display: flex;
-    gap: 12px;
-  }
-  .flex-row .form-group {
-    flex: 1;
-  }
-  button.primary-btn {
-    width: 100%;
-    padding: 16px;
-    font-size: 1.1rem;
-    font-weight: bold;
-    background-color: var(--primary);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    -webkit-tap-highlight-color: transparent; 
-  }
-  button.primary-btn:hover {
-    background-color: var(--primary-hover);
-  }
-  details {
-    background: var(--bg);
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    border: 1px solid var(--border);
-  }
-  summary {
-    font-weight: bold;
-    cursor: pointer;
-    color: var(--text-sub);
-    padding: 4px 0;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .settings-area {
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px dashed var(--border);
-  }
-  
-  /* 📦 種類管理セクション用スタイル */
-  .config-item-list {
-    margin-bottom: 16px;
-  }
-  .config-item-row {
-    background: #ffffff;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px;
-    margin-bottom: 12px;
-  }
-  .config-item-fields {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-  }
-  .config-item-fields > div {
-    flex: 1;
-  }
-  .config-item-fields label {
-    font-size: 0.75rem;
-    color: var(--text-sub);
-    margin-bottom: 4px;
-    font-weight: normal;
-  }
-  .config-item-fields input {
-    width: 100%;
-    padding: 8px;
-    font-size: 0.9rem;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    box-sizing: border-box;
-  }
-  .btn-danger {
-    background-color: #fef2f2;
-    color: var(--danger);
-    border: 1px solid #fecaca;
-    padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    font-weight: bold;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .btn-danger:hover {
-    background-color: #fee2e2;
-  }
-  .btn-secondary {
-    display: inline-block;
-    background-color: #f1f5f9;
-    color: var(--text-main);
-    border: 1px solid var(--border);
-    padding: 10px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: bold;
-    margin-top: 4px;
-    margin-bottom: 16px;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .btn-secondary:hover {
-    background-color: #e2e8f0;
-  }
-  
-  #result-area {
-    display: none;
-  }
-  .result-section {
-    margin-bottom: 24px;
-    background: var(--bg);
-    padding: 16px;
-    border-radius: 8px;
-  }
-  .result-section h3 {
-    font-size: 1.1rem;
-    color: var(--primary);
-    margin-top: 0;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .warning {
-    color: var(--danger);
-    font-size: 0.85rem;
-    margin-top: 4px;
-    display: block;
-    font-weight: bold;
-  }
-  .schedule-info {
-    background: #e0f2fe;
-    padding: 16px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    border-left: 4px solid var(--primary);
-  }
-  .schedule-info p {
-    margin: 6px 0;
-    font-size: 0.95rem;
-    color: #0369a1;
-  }
-  .schedule-info span {
-    font-weight: bold;
-  }
-  .schedule-row {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 12px 0;
-  }
-  .schedule-row:not(:last-child) {
-    border-bottom: 1px dashed var(--border);
+    -moz-appearance: none;
+    appearance: none;
   }
 </style>
 </head>
-<body>
-<div class="container">
-  <h1>
-    📦 パックキープ
-    <span style="display: block; font-size: 0.85rem; font-weight: normal; color: var(--text-sub); margin-top: 4px;">
-      〜 栄養パック発注管理シミュレーター 〜
-    </span>
-  </h1>
+<body class="bg-[#fdf7f5] text-brand-text antialiased min-h-screen py-10 px-4 font-sans selection:bg-stone-200">
 
-  <details id="settings-details">
-    <summary>⚙️ 詳細設定 (消費量・パックの種類変更など)</summary>
-    <div class="settings-area">
-      <div class="form-group">
-        <label>常に手元にキープしておきたい予備（何日分）</label>
-        <input type="number" id="safe-stock" value="20" min="0">
-        <p style="font-size: 0.8rem; color: var(--text-sub); margin: 4px 0 0 0;">※新しい箱が届く「直前（箱を開ける前）」の時点で、倉庫に最低限残しておきたい日数です。</p>
+<div class="max-w-xl mx-auto">
+  <!-- ヘッダーデザイン：静かで優しく、オーガニックな雰囲気 -->
+  <header class="text-center mb-8">
+    <div class="inline-flex items-center justify-center text-brand-muted w-14 h-14 rounded-full bg-white border border-brand-border shadow-sm mb-4">
+      <svg class="w-6 h-6 text-brand-sage" fill="none" stroke="currentColor" stroke-width="1.25" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+      </svg>
+    </div>
+    <h1 class="text-2xl font-bold text-brand-text tracking-tight">パックキープ</h1>
+    <p class="text-[11px] text-brand-muted mt-2 leading-relaxed">日々の消費ペースから、次の発注日（納品日）に必要な発注スケジュールを計算します</p>
+  </header>
+
+  <!-- 設定 (アコーディオン) -->
+  <details id="settings-details" class="group bg-white rounded-[22px] border border-brand-border shadow-sm overflow-hidden mb-6 transition-all duration-300">
+    <summary class="flex items-center justify-between p-5 text-xs font-bold text-brand-muted cursor-pointer list-none hover:bg-brand-lightBg transition-colors select-none">
+      <div class="flex items-center gap-2.5">
+        <svg class="w-4 h-4 text-brand-muted group-open:text-brand-sage transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0 z"></path>
+        </svg>
+        <span>基準値・パック種類の変更</span>
+      </div>
+      <svg class="w-4 h-4 text-brand-muted group-open:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path>
+      </svg>
+    </summary>
+    
+    <div class="p-6 border-t border-brand-border bg-brand-lightBg space-y-6">
+      <!-- 予備日数設定 & 発注曜日設定 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- 予備日数設定 -->
+        <div class="space-y-2">
+          <label class="block text-[11px] font-bold text-brand-text uppercase tracking-wider">常に手元にキープしておきたい予備</label>
+          <div class="relative rounded-xl shadow-sm">
+            <input type="number" id="safe-stock" value="20" min="0" class="block w-full rounded-xl border border-brand-border bg-white py-2.5 px-4 text-brand-text font-bold focus:border-brand-sage focus:outline-none focus:ring-1 focus:ring-brand-sage/20 transition-all text-base">
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
+              <span class="text-xs font-semibold text-brand-muted">日分</span>
+            </div>
+          </div>
+          <p class="text-[10px] text-brand-muted leading-relaxed">※新しい箱が届く「直前（箱を開ける前）」の時点で、倉庫に最低限残しておきたい日数です。</p>
+        </div>
+
+        <!-- 発注曜日設定 -->
+        <div class="space-y-2">
+          <label class="block text-[11px] font-bold text-brand-text uppercase tracking-wider">発注する曜日</label>
+          <div class="relative rounded-xl shadow-sm">
+            <select id="order-day-of-week" class="block w-full rounded-xl border border-brand-border bg-white py-2.5 pl-4 pr-10 text-brand-text font-bold focus:border-brand-sage focus:outline-none focus:ring-1 focus:ring-brand-sage/20 transition-all text-sm bg-none">
+              <option value="0">日曜日</option>
+              <option value="1">月曜日</option>
+              <option value="2">火曜日</option>
+              <option value="3" selected>水曜日</option>
+              <option value="4">木曜日</option>
+              <option value="5">金曜日</option>
+              <option value="6">土曜日</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
+              <svg class="w-4 h-4 text-brand-muted" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </div>
+          </div>
+          <p class="text-[10px] text-brand-muted leading-relaxed">※毎週この曜日に発注手続きを行い、その1週間後（翌週の同じ曜日）に品物が届く計算を行います。</p>
+        </div>
       </div>
 
-      <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">
-        <p style="font-weight:bold; margin-bottom:8px; color: var(--text-main); font-size: 0.95rem;">📦 パックの種類と1日の消費設定 (最大4個まで)</p>
+      <!-- パック種類管理 -->
+      <div class="pt-5 border-t border-brand-border/60">
+        <h4 class="text-[11px] font-bold text-brand-text uppercase tracking-wider mb-3">
+          <span>登録パックの種類・消費量 (最大4個まで)</span>
+        </h4>
         
-        <!-- 動的登録エリア -->
-        <div id="config-items-container" class="config-item-list"></div>
+        <!-- 品目リストのコンテナ -->
+        <div id="config-items-container" class="space-y-3"></div>
         
-        <button id="add-item-btn" class="btn-secondary" onclick="addItem()">＋ 新しい種類を追加する</button>
+        <button id="add-item-btn" class="mt-3 inline-flex items-center gap-1 px-3.5 py-2.5 rounded-xl border border-brand-border bg-white hover:bg-brand-lightBg text-brand-text hover:text-brand-text font-semibold text-xs transition-all active:scale-95 shadow-sm" onclick="addItem()">
+          <svg class="w-3.5 h-3.5 text-brand-sage" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+          </svg>
+          品目（カロリー）を追加する
+        </button>
       </div>
 
-      <div class="form-group" style="margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--border);">
-        <label style="display: flex; align-items: flex-start; font-weight: normal; cursor: pointer; color: var(--text-main); -webkit-tap-highlight-color: transparent;">
-          <input type="checkbox" id="auto-balance" checked style="width: 20px; height: 20px; margin: 2px 8px 0 0; flex-shrink: 0;">
-          <span>発注箱数を「消費量の倍数」に揃えてバランスを保つ</span>
+      <!-- バランス設定 -->
+      <div class="pt-5 border-t border-brand-border/60">
+        <label class="relative flex items-start gap-2.5 cursor-pointer select-none">
+          <input type="checkbox" id="auto-balance" checked class="peer sr-only">
+          <div class="w-4.5 h-4.5 rounded-md border border-brand-border bg-white flex items-center justify-center shrink-0 peer-checked:bg-brand-sage peer-checked:border-brand-sage focus:outline-none transition-all">
+            <svg class="w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path>
+            </svg>
+          </div>
+          <div>
+            <span class="text-xs font-bold text-brand-text block leading-tight">発注箱数を「消費量の倍数」に揃えてバランスを保つ</span>
+            <span class="text-[10px] text-brand-muted block mt-1 leading-normal">※各種類の1日の消費量に応じて発注箱数の最小単位が自動計算され、在庫数のズレを防ぎます。</span>
+          </div>
         </label>
-        <p style="font-size: 0.8rem; color: var(--text-sub); margin: 4px 0 0 28px;">※チェックを入れると、各種類の1日あたりの消費量に応じて発注箱数の最小単位が自動計算され、在庫のズレを防ぎます。</p>
       </div>
     </div>
   </details>
 
-  <div class="card">
-    <h2 class="card-title">📝 現在の在庫入力</h2>
-    <div class="form-group" style="margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px dashed var(--border);">
-      <label for="input-date" style="color: var(--primary);">🗓️ 在庫を確認した日 (基準日)</label>
-      <input type="date" id="input-date" style="font-weight: bold; color: var(--text-main);">
-      <p style="font-size: 0.8rem; color: var(--text-sub); margin: 4px 0 0 0;">※基本は今日の日付です。過去の在庫データで計算したい場合は変更してください。</p>
-    </div>
-    
-    <!-- JSで設定に基づき動的に生成される在庫入力欄のコンテナ -->
-    <div id="stock-inputs-container"></div>
-    
-    <button class="primary-btn" onclick="calculateOrder()">計算する</button>
-  </div>
+  <!-- 在庫入力カード -->
+  <main class="bg-white rounded-[22px] border border-brand-border shadow-sm p-6 md:p-8 space-y-6 mb-6">
+    <h2 class="text-xs font-bold text-brand-muted uppercase tracking-wider flex items-center gap-2">
+      <svg class="w-4 h-4 text-brand-sage" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+      </svg>
+      現在の正確な在庫の入力
+    </h2>
 
-  <div id="result-area">
-    <div class="schedule-info">
-      <p>📅 次回の発注検討予定日: <span id="w1-date" style="font-weight: bold;"></span></p>
-      <p>🚚 その発注分の納品予定日: <span id="w2-date" style="font-weight: bold;"></span></p>
+    <!-- 在庫確認基準日 -->
+    <div class="pb-5 border-b border-brand-lightBg">
+      <label class="block text-[10px] font-bold text-brand-muted uppercase tracking-wider mb-2">🗓️ 在庫のデータを確認した日</label>
+      <input type="date" id="input-date" class="block w-full max-w-xs rounded-xl border border-brand-border bg-white py-2.5 px-4 text-brand-text font-bold focus:border-brand-sage focus:outline-none focus:ring-1 focus:ring-brand-sage/20 transition-all text-sm">
     </div>
 
-    <!-- 🚨 今回の注文（最優先アクション） -->
-    <div class="card" id="current-order-card" style="border: 3px solid var(--primary); background: #eff6ff;">
-      <h2 class="card-title" style="color: var(--primary); border-bottom-color: var(--primary); display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <span>🚨 今週（直近の水曜日）に注文するもの</span>
-        <span id="current-order-date" style="font-size: 0.95rem; font-weight: normal; color: var(--text-main);"></span>
-      </h2>
-      <div id="current-order-content">
-        <!-- JSで今すぐ発注するものを挿入 -->
+    <!-- 動的に生成される在庫入力フォーム -->
+    <div id="stock-inputs-container" class="space-y-4"></div>
+
+    <!-- 計算実行ボタン -->
+    <button class="w-full bg-brand-sage hover:bg-brand-sageHover text-white font-bold py-3.5 px-6 rounded-xl transition-all active:scale-[0.99] text-base select-none shadow-sm" onclick="calculateOrder()">
+      シミュレーションを実行する
+    </button>
+  </main>
+
+  <!-- 計算結果出力エリア -->
+  <section id="result-area" class="hidden space-y-6">
+    <!-- 日程サマリーインフォ -->
+    <div class="bg-white border-l-4 border-brand-sage rounded-xl p-4 space-y-1 text-xs border border-brand-border shadow-sm">
+      <div class="flex items-center gap-1.5 text-brand-text font-bold mb-1">
+        <svg class="w-4 h-4 text-brand-sage" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+        </svg>
+        <span>発注・納品の日程目安</span>
+      </div>
+      <p class="text-brand-muted">次回の発注予定日: <span id="w1-date" class="font-bold text-brand-text"></span></p>
+      <p class="text-brand-muted">お届け完了の予定日: <span id="w2-date" class="font-bold text-brand-text"></span></p>
+    </div>
+
+    <!-- 🚨 今週の注文アクションカード：白背景ベース ＋ 太いサクラ色枠 ＋ 淡いピンクの明るいリデザイン -->
+    <div class="bg-white text-brand-text rounded-[22px] border-2 border-brand-sage shadow-md p-6 md:p-8 space-y-5">
+      <div class="flex items-center justify-between border-b border-brand-border pb-4">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-brand-sage"></span>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-brand-text">今週（直近の<span id="target-day-name">水曜日</span>）に注文するもの</h3>
+        </div>
+        <span id="current-order-date" class="text-[10px] text-brand-sage font-bold tracking-wider bg-brand-sageLight py-1 px-3 rounded-full"></span>
+      </div>
+
+      <div id="current-order-content" class="space-y-4">
+        <!-- JSでここに最優先のアクション項目を挿入 -->
       </div>
     </div>
 
     <!-- 📅 今後の予測スケジュール -->
-    <div class="card">
-      <h2 class="card-title" style="border-bottom: 2px solid var(--border);">📅 今後の注文スケジュール (今後5回分)</h2>
-      <p style="font-size: 0.8rem; color: var(--text-sub); margin-top: 6px; margin-bottom: 20px;">
-        ※現在の消費ペースが続いた場合の目安スケジュールです。
-      </p>
-      <div id="upcoming-schedule-list" style="display: flex; flex-direction: column; gap: 16px;">
-        <!-- JSで発注日ごとの予定カードを動的生成 -->
+    <div class="bg-white rounded-[22px] border border-brand-border shadow-sm p-6 md:p-8 space-y-6">
+      <div>
+        <h3 class="text-xs font-bold text-brand-muted uppercase tracking-wider flex items-center gap-2">
+          <svg class="w-4 h-4 text-brand-sage" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          今後の注文計画シミュレーション (今後5回分)
+        </h3>
+        <p class="text-[10px] text-brand-muted leading-normal mt-1">※現在の消費スピードが継続した場合の予測スケジュールです。</p>
+      </div>
+
+      <!-- スケジュールリスト -->
+      <div id="upcoming-schedule-list" class="space-y-4">
+        <!-- JSで動的にカードが追加されます -->
       </div>
     </div>
-  </div>
+  </section>
 </div>
 
 <script>
-  // 栄養パックのデフォルトマスタ
+  // パック種類のマスタデータ
   let itemsData = [
     { id: 1, kcal: 300, packPerBox: 20, consume: 3 },
     { id: 2, kcal: 400, packPerBox: 20, consume: 2 },
@@ -333,84 +243,105 @@
   ];
 
   window.addEventListener('DOMContentLoaded', () => {
-    // 基準日の初期値設定
+    // 日付入力の初期値設定
     const today = new Date();
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
     document.getElementById('input-date').value = `${yyyy}-${mm}-${dd}`;
 
-    // 各品目の詳細設定及び入力欄の初期レンダリング
+    // 各セクションの初期描画
     renderConfigItems();
     renderStockInputs();
   });
 
-  // 詳細設定の中の「品目登録リスト」を描画
+  // 詳細設定の中の登録リストを表示
   function renderConfigItems() {
     const container = document.getElementById('config-items-container');
     container.innerHTML = '';
 
     itemsData.forEach((item, index) => {
       const row = document.createElement('div');
-      row.className = 'config-item-row';
+      row.className = 'bg-white rounded-xl border border-brand-border p-4 space-y-3 shadow-sm';
       row.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-weight: bold; font-size: 0.9rem; color: var(--text-main);">種類 ${index + 1}</span>
-          ${itemsData.length > 1 ? `<button class="btn-danger" onclick="removeItem(${item.id})">削除</button>` : ''}
+        <div class="flex items-center justify-between">
+          <span class="text-[9px] font-bold text-brand-muted uppercase tracking-wider">品目 ${index + 1}</span>
+          ${itemsData.length > 1 ? `
+            <button class="text-[10px] font-bold text-brand-warning bg-brand-warningBg hover:bg-[#f8e5e6] py-1 px-2.5 rounded-lg transition-all" onclick="removeItem(${item.id})">削除する</button>
+          ` : ''}
         </div>
-        <div class="config-item-fields">
+        <div class="grid grid-cols-3 gap-2.5">
           <div>
-            <label>カロリー</label>
-            <input type="number" value="${item.kcal}" oninput="updateItemField(${item.id}, 'kcal', this.value)" min="0" placeholder="kcal">
+            <label class="block text-[9px] font-bold text-brand-muted uppercase tracking-wider mb-1">カロリー</label>
+            <div class="relative rounded-lg">
+              <input type="number" value="${item.kcal}" oninput="updateItemField(${item.id}, 'kcal', this.value)" min="0" class="block w-full rounded-lg border border-brand-border py-1.5 pl-2.5 pr-7 text-brand-text font-bold text-xs focus:border-brand-sage focus:outline-none transition-all">
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                <span class="text-[9px] font-bold text-brand-muted">kcal</span>
+              </div>
+            </div>
           </div>
           <div>
-            <label>1箱の個数</label>
-            <input type="number" value="${item.packPerBox}" oninput="updateItemField(${item.id}, 'packPerBox', this.value)" min="1" placeholder="パック">
+            <label class="block text-[9px] font-bold text-brand-muted uppercase tracking-wider mb-1">1箱の個数</label>
+            <div class="relative rounded-lg">
+              <input type="number" value="${item.packPerBox}" oninput="updateItemField(${item.id}, 'packPerBox', this.value)" min="1" class="block w-full rounded-lg border border-brand-border py-1.5 pl-2.5 pr-7 text-brand-text font-bold text-xs focus:border-brand-sage focus:outline-none transition-all">
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                <span class="text-[9px] font-bold text-brand-muted">P</span>
+              </div>
+            </div>
           </div>
           <div>
-            <label>1日消費量</label>
-            <input type="number" value="${item.consume}" oninput="updateItemField(${item.id}, 'consume', this.value)" min="0" placeholder="パック">
+            <label class="block text-[9px] font-bold text-brand-muted uppercase tracking-wider mb-1">1日消費量</label>
+            <div class="relative rounded-lg">
+              <input type="number" value="${item.consume}" oninput="updateItemField(${item.id}, 'consume', this.value)" min="0" class="block w-full rounded-lg border border-brand-border py-1.5 pl-2.5 pr-7 text-brand-text font-bold text-xs focus:border-brand-sage focus:outline-none transition-all">
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                <span class="text-[9px] font-bold text-brand-muted">P</span>
+              </div>
+            </div>
           </div>
         </div>
       `;
       container.appendChild(row);
     });
 
-    // 「追加する」ボタンの最大上限（4個）による制御
+    // 最大4個までの登録制限
     const addBtn = document.getElementById('add-item-btn');
     if (itemsData.length >= 4) {
       addBtn.style.display = 'none';
     } else {
-      addBtn.style.display = 'inline-block';
+      addBtn.style.display = 'inline-flex';
     }
   }
 
-  // 「在庫入力」欄を設定値に合わせ動的描画（入力中だった値はキープする）
+  // 現在の在庫入力欄を動的生成（すでに入力されていた値は自動保持）
   function renderStockInputs() {
     const container = document.getElementById('stock-inputs-container');
-    const savedStocks = {};
+    const savedValues = {};
     
-    // 現在の画面の入力値を一度退避
     itemsData.forEach(item => {
       const el = document.getElementById(`stock-${item.id}`);
       if (el) {
-        savedStocks[item.id] = el.value;
+        savedValues[item.id] = el.value;
       }
     });
 
     container.innerHTML = '';
     itemsData.forEach(item => {
-      const val = savedStocks[item.id] !== undefined ? savedStocks[item.id] : '';
-      const formGroup = document.createElement('div');
-      formGroup.className = 'form-group';
-      formGroup.innerHTML = `
-        <label>${item.kcal}kcal の在庫 (パック)</label>
-        <input type="number" id="stock-${item.id}" min="0" placeholder="例: 18" value="${val}">
+      const value = savedValues[item.id] !== undefined ? savedValues[item.id] : '';
+      const div = document.createElement('div');
+      div.className = 'space-y-1.5';
+      div.innerHTML = `
+        <label class="block text-xs font-bold text-brand-text/90">${item.kcal}kcal の在庫数</label>
+        <div class="relative rounded-xl">
+          <input type="number" id="stock-${item.id}" min="0" placeholder="例: 18" value="${value}" class="block w-full rounded-xl border border-brand-border bg-white py-2.5 px-4 text-brand-text font-bold focus:border-brand-sage focus:outline-none focus:ring-1 focus:ring-brand-sage/20 transition-all text-sm pr-16">
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
+            <span class="text-xs font-bold text-brand-muted">パック</span>
+          </div>
+        </div>
       `;
-      container.appendChild(formGroup);
+      container.appendChild(div);
     });
 
-    // 動的に生成されたすべての数値入力欄に対し、タップした際の自動全選択をアタッチ
+    // すべての数値フィールドに「フォーカス時全選択」の挙動をバインド
     container.querySelectorAll('input[type="number"]').forEach(input => {
       input.addEventListener('focus', function() {
         setTimeout(() => { this.select(); }, 50);
@@ -423,19 +354,18 @@
     });
   }
 
-  // 設定項目（カロリー、箱容量、消費量）が変更された際のデータ同期
+  // 登録品目のフィールド値同期
   function updateItemField(id, field, value) {
     const item = itemsData.find(i => i.id === id);
     if (item) {
       item[field] = parseInt(value) || 0;
-      // カロリー名が変化した場合は、在庫ラベルを反映するために在庫欄を再描画する
       if (field === 'kcal') {
-        renderStockInputs();
+        renderStockInputs(); // カロリーラベル更新のために再描画
       }
     }
   }
 
-  // 品目の新規追加（上限4個、デフォルト値として600kcal, 20個パックを充当）
+  // 品目の新規追加
   function addItem() {
     if (itemsData.length >= 4) return;
     const newId = Date.now();
@@ -457,13 +387,20 @@
     renderStockInputs();
   }
 
-  // 🧮 発注シミュレーションのメインエンジン（2週間先読みモデル）
+  // 🧮 2週間先読み発注ロジックによる計算シミュレーション
   function calculateOrder() {
     const inputDateValue = document.getElementById('input-date').value;
     const baseDate = inputDateValue ? new Date(inputDateValue) : new Date();
     
+    // 選択された発注曜日を取得
+    const orderDayOfWeek = parseInt(document.getElementById('order-day-of-week').value);
+    const dayNames = ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'];
+    const orderDayName = dayNames[orderDayOfWeek];
+
+    document.getElementById('target-day-name').textContent = orderDayName;
+
     const day = baseDate.getDay();
-    let diffToOrderDay = (3 - day + 7) % 7; 
+    let diffToOrderDay = (orderDayOfWeek - day + 7) % 7; 
     
     const w1Date = new Date(baseDate);
     w1Date.setDate(baseDate.getDate() + diffToOrderDay);
@@ -484,7 +421,7 @@
 
     let consumes = {};
     let targets = {};
-    let currentStocks = {}; // シミュレーション中の、各品目の発注前在庫（W1時点）
+    let currentStocks = {}; // 発注前時点の予測在庫
     let packPerBoxes = {};
 
     itemsData.forEach(item => {
@@ -494,9 +431,8 @@
 
       consumes[item.id] = consume;
       packPerBoxes[item.id] = packPerBox;
-      targets[item.id] = consume * safeStockDays; // 倉庫に残しておきたい目標予備数
+      targets[item.id] = consume * safeStockDays; // 手元キープ用の予備ターゲット数
       
-      // 発注日（W1）直前の発注前の予測在庫
       const stockW1 = stockAtBaseDate - (consume * diffToOrderDay);
       currentStocks[item.id] = stockW1;
     });
@@ -506,7 +442,6 @@
     let currentOrderInfo = null;
     const upcomingMergedOrders = [];
 
-    // 最大100週間のシミュレーションを実行
     for (let week = 0; week < 100; week++) {
       let orderThisWeek = {
         date: new Date(simDate),
@@ -520,26 +455,21 @@
         const packPerBox = packPerBoxes[item.id];
         if (consume <= 0) return;
 
-        // 【2週間先読みロジック】今週見送った場合、再来週（2週間後）届く直前にどうなっているか
-        // ＝ 現在の在庫 － 14日分の消費
+        // 【2週間先読みロジック】
         const stockPrePreNext = currentStocks[item.id] - (consume * 14);
 
-        // 2週間後に目標予備を下回ってしまうなら、今週発注を確定する
         if (stockPrePreNext < target) {
           const shortageToTarget = target - stockPrePreNext;
           let minNextBoxes = Math.ceil(shortageToTarget / packPerBox);
           let nextOrderBoxes = minNextBoxes;
           
           if (autoBalance) {
-            // 消費量の倍数の箱数（300kcalなら3箱単位、400kcalなら2箱単位など）に揃える
             nextOrderBoxes = Math.ceil(minNextBoxes / consume) * consume;
           }
           
-          // 翌週届く「直前（開ける前）」の予測在庫
           const stockPreNext = currentStocks[item.id] - (consume * 7);
           const arrivalDaysPre = (stockPreNext / consume).toFixed(1).replace(/\.0$/, '');
 
-          // 翌週届いた「直後（補充後）」の総在庫
           const postStock = stockPreNext + (nextOrderBoxes * packPerBox);
           const postDays = (postStock / consume).toFixed(1).replace(/\.0$/, '');
 
@@ -556,10 +486,9 @@
             arrivalDaysPre: arrivalDaysPre,
             shortage: shortageWarning
           };
-          currentStocks[item.id] = postStock; // 在庫補充
+          currentStocks[item.id] = postStock;
           hasOrderThisWeek = true;
         } else {
-          // 発注をスルーする場合、1週間（7日分）消費されるのみ
           currentStocks[item.id] = currentStocks[item.id] - (consume * 7);
           orderThisWeek.orders[item.id] = {
             boxes: 0,
@@ -581,14 +510,13 @@
         }
 
         if (upcomingMergedOrders.length >= 5) {
-          break; // 5回分が集まった時点で終了
+          break;
         }
       }
 
       simDate.setDate(simDate.getDate() + 7);
     }
 
-    // 🚨 ❶ 今週注文するもののUI表示更新
     const currentContentEl = document.getElementById('current-order-content');
     document.getElementById('current-order-date').textContent = `発注日: ${formatDate(w1Date)}`;
 
@@ -605,27 +533,39 @@
         if (boxes > 0) {
           let warningHtml = '';
           if (orderInfo.shortage > 0) {
-            warningHtml = `<div class="warning" style="color: var(--danger); font-size: 0.85rem; margin-top: 4px;">⚠️ 納品前に ${orderInfo.shortage} パック不足する恐れがあります</div>`;
+            warningHtml = `
+              <div class="flex items-center gap-1.5 mt-2 bg-brand-warning/10 border border-brand-warning/20 rounded-xl p-2.5 text-brand-warning text-xs font-semibold">
+                <svg class="w-3.5 h-3.5 shrink-0 text-brand-warning" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <span>新しい箱が届く前に ${orderInfo.shortage} パック足りなくなります</span>
+              </div>
+            `;
           }
           
           const isTargetMet = parseFloat(orderInfo.arrivalDaysPre) >= safeStockDays;
-          const preColor = isTargetMet ? 'var(--success)' : 'var(--danger)';
+          const preColorClass = isTargetMet ? 'text-brand-success font-semibold' : 'text-brand-warning font-semibold';
 
           itemsHtml += `
-            <div style="display: flex; flex-direction: column; padding: 12px 0; border-bottom: 1px dashed var(--border);">
-              <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                <span style="font-weight: bold; font-size: 1.1rem; color: var(--text-main);">${item.kcal}kcal</span>
-                <div style="text-align: right;">
-                  <span style="font-weight: 900; color: var(--primary); font-size: 1.6rem;">${boxes}</span><span style="font-size: 0.9rem; font-weight: bold; color: var(--text-main);"> 箱</span>
-                  <span style="font-size: 0.85rem; color: var(--text-sub); margin-left: 6px;">(${boxes * packPerBox}パック)</span>
+            <div class="border-b border-brand-border pb-5 last:border-b-0 last:pb-0 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-bold text-brand-text">${item.kcal}kcal</span>
+                <div class="text-right">
+                  <span class="text-xl font-extrabold text-brand-sage tracking-tight">${boxes}</span>
+                  <span class="text-xs font-semibold text-brand-text/80 ml-0.5">箱</span>
+                  <span class="text-xs text-brand-muted ml-2">(${boxes * packPerBox}パック)</span>
                 </div>
               </div>
               ${warningHtml}
-              <div style="font-size: 0.8rem; color: var(--text-sub); margin-top: 6px; padding-left: 10px; border-left: 3px solid #cbd5e1;">
-                ⏳ 届く直前(${nextW2MD}・開ける前)の予備: <span style="font-weight: bold; color: ${preColor};">${orderInfo.arrivalStockPre}パック (約${orderInfo.arrivalDaysPre}日分)</span>
-              </div>
-              <div style="font-size: 0.8rem; color: var(--success); font-weight: bold; margin-top: 4px; padding-left: 10px; border-left: 3px solid var(--success);">
-                📦 届いた直後(${nextW2MD})の総在庫: ${orderInfo.postStock}パック (約${orderInfo.postDays}日分)
+              <div class="grid grid-cols-2 gap-2 text-[11px] pt-1 font-medium">
+                <div class="bg-brand-lightBg rounded-xl p-2.5 border border-brand-border">
+                  <span class="block text-brand-muted mb-0.5">⏳ 届く直前 (${nextW2MD})</span>
+                  <span class="${preColorClass}">${orderInfo.arrivalStockPre}パック (約${orderInfo.arrivalDaysPre}日分)</span>
+                </div>
+                <div class="bg-brand-lightBg rounded-xl p-2.5 border border-brand-border">
+                  <span class="block text-brand-muted mb-0.5">📦 届いた直後 (${nextW2MD})</span>
+                  <span class="text-brand-success font-bold">${orderInfo.postStock}パック (約${orderInfo.postDays}日分)</span>
+                </div>
               </div>
             </div>
           `;
@@ -634,23 +574,21 @@
       currentContentEl.innerHTML = itemsHtml;
     } else {
       currentContentEl.innerHTML = `
-        <div style="text-align: center; padding: 24px 0; color: var(--text-sub);">
-          <div style="font-size: 3.5rem; margin-bottom: 10px;">🎉</div>
-          <p style="font-weight: bold; font-size: 1.15rem; margin: 0; color: var(--success);">今週水曜日（${formatDate(w1Date)}）の発注は不要です！</p>
-          <p style="font-size: 0.85rem; margin: 6px 0 0 0;">現在の在庫は十分に安全水準を保っています。</p>
+        <div class="text-center py-6">
+          <div class="text-3xl mb-2">🍀</div>
+          <p class="font-semibold text-brand-success text-sm">今週${orderDayName}（${formatDate(w1Date)}）の発注は不要です</p>
+          <p class="text-[11px] text-brand-muted mt-1 leading-normal">現在の在庫で、ご指定の予備日数が完全にキープされます。</p>
         </div>
       `;
     }
 
-    // 📅 ❷ 今後5回分のスケジュールリストのUI描画
     const listEl = document.getElementById('upcoming-schedule-list');
     listEl.innerHTML = '';
 
     if (upcomingMergedOrders.length > 0) {
       upcomingMergedOrders.forEach((order, index) => {
         const cardDiv = document.createElement('div');
-        cardDiv.className = 'schedule-card';
-        cardDiv.style.cssText = 'background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: left; box-shadow: 0 1px 3px rgba(0,0,0,0.05);';
+        cardDiv.className = 'bg-stone-50/50 border border-brand-border rounded-[20px] p-5 space-y-4 shadow-sm';
         
         const arrivalDate = new Date(order.date);
         arrivalDate.setDate(order.date.getDate() + 7);
@@ -664,27 +602,36 @@
           if (boxes > 0) {
             let warningHtml = '';
             if (orderInfo.shortage > 0) {
-              warningHtml = `<div class="warning" style="text-align: left; margin-top: 2px; color: var(--danger);">⚠️ 納品前に ${orderInfo.shortage} パック不足する恐れがあります</div>`;
+              warningHtml = `
+                <div class="flex items-center gap-1 mt-1 text-brand-warning font-bold text-[10px]">
+                  <span>⚠️ 新しい箱が届く前に ${orderInfo.shortage} パック不足</span>
+                </div>
+              `;
             }
 
             const isTargetMet = parseFloat(orderInfo.arrivalDaysPre) >= safeStockDays;
-            const preColor = isTargetMet ? 'var(--success)' : 'var(--danger)';
+            const preColorClass = isTargetMet ? 'text-brand-success' : 'text-brand-warning';
 
             itemsHtml += `
-              <div class="schedule-row" style="padding: 6px 0;">
-                <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-                  <span style="font-weight: bold; color: var(--text-main); font-size: 0.95rem;">${item.kcal}kcal</span>
-                  <div style="text-align: right;">
-                    <span style="font-weight: bold; color: var(--primary); font-size: 1.15rem;">${boxes}</span><span style="font-size: 0.8rem; color: var(--text-main);">箱</span>
-                    <span style="font-size: 0.75rem; color: var(--text-sub); margin-left: 4px;">(${boxes * packPerBox}パック)</span>
+              <div class="py-3 border-b border-brand-border/60 last:border-0 last:pb-0 last:pt-3 space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-brand-text">${item.kcal}kcal</span>
+                  <div class="text-right">
+                    <span class="text-base font-extrabold text-brand-text tracking-tight">${boxes}</span>
+                    <span class="text-[10px] font-semibold text-brand-text/80 ml-0.5">箱</span>
+                    <span class="text-[10px] text-brand-muted ml-1">(${boxes * packPerBox}パック)</span>
                   </div>
                 </div>
                 ${warningHtml}
-                <div style="font-size: 0.75rem; color: var(--text-sub); padding-left: 8px; border-left: 2px solid #cbd5e1; margin-top: 2px;">
-                  ⏳ 届く直前(${arrivalMD}・開ける前)の予備: <span style="font-weight: bold; color: ${preColor};">${orderInfo.arrivalStockPre}パック (約${orderInfo.arrivalDaysPre}日分)</span>
-                </div>
-                <div style="font-size: 0.75rem; color: var(--text-sub); padding-left: 8px; border-left: 2px solid var(--success); margin-top: 2px;">
-                  📦 届いた直後(${arrivalMD})の予測総在庫: ${orderInfo.postStock}パック (約${orderInfo.postDays}日分)
+                <div class="grid grid-cols-2 gap-2 text-[10px] pt-1 font-semibold leading-normal">
+                  <div class="bg-white rounded-xl p-2 border border-brand-border/60 shadow-sm">
+                    <span class="block text-brand-muted mb-0.5 font-medium">⏳ 届く直前 (${arrivalMD})</span>
+                    <span class="${preColorClass}">${orderInfo.arrivalStockPre}パック (${orderInfo.arrivalDaysPre}日分)</span>
+                  </div>
+                  <div class="bg-white rounded-xl p-2 border border-brand-border/60 shadow-sm">
+                    <span class="block text-brand-muted mb-0.5 font-medium">📦 届いた直後 (${arrivalMD})</span>
+                    <span class="text-brand-success font-bold">${orderInfo.postStock}パック (${orderInfo.postDays}日分)</span>
+                  </div>
                 </div>
               </div>
             `;
@@ -692,27 +639,30 @@
         });
 
         cardDiv.innerHTML = `
-          <div style="font-weight: bold; color: var(--primary); border-bottom: 2px solid var(--bg); padding-bottom: 8px; margin-bottom: 10px; font-size: 0.95rem; display: flex; flex-direction: column; gap: 4px;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="display:inline-block; width: 22px; height: 22px; background: #93c5fd; color: #1e3a8a; border-radius: 50%; text-align: center; line-height: 22px; font-size: 0.75rem; font-weight: bold;">${index + 1}</span>
-              <span>発注予定日: <span style="color: var(--text-main);">${formatDate(order.date)}</span></span>
-            </div>
-            <div style="font-size: 0.8rem; color: var(--text-sub); margin-left: 30px; font-weight: normal;">
-              ➔ 届く予定日: <span style="color: var(--text-main); font-weight: bold;">${formatDate(arrivalDate)}</span>
+          <div class="border-b border-brand-border pb-3 mb-1 flex items-start gap-2.5">
+            <span class="flex items-center justify-center shrink-0 w-5 h-5 rounded-md bg-stone-200/50 text-brand-text font-bold text-[10px] border border-brand-border">${index + 1}</span>
+            <div class="space-y-0.5">
+              <span class="block text-xs font-bold text-brand-text">発注日: ${formatDate(order.date)}</span>
+              <span class="block text-[10px] font-bold text-brand-muted">➔ 届く予定日: ${formatDate(arrivalDate)}</span>
             </div>
           </div>
-          <div>
+          <div class="divide-y divide-brand-border/40">
             ${itemsHtml}
           </div>
         `;
         listEl.appendChild(cardDiv);
       });
     } else {
-      listEl.innerHTML = '<p style="text-align: center; font-weight: bold; color: var(--text-sub); margin: 20px 0;">今後、追加の発注予定はありません</p>';
+      listEl.innerHTML = `
+        <div class="text-center py-6 bg-stone-50/50 rounded-[20px] border border-brand-border">
+          <p class="text-xs font-semibold text-brand-muted">追加の発注予定はありません</p>
+        </div>
+      `;
     }
 
-    // 結果表示領域の開示
-    document.getElementById('result-area').style.display = 'block';
+    const resultArea = document.getElementById('result-area');
+    resultArea.classList.remove('hidden');
+    resultArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 </script>
 </body>
