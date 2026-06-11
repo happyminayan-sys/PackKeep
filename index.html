@@ -24,18 +24,18 @@
       extend: {
         colors: {
           brand: {
-            text: '#5c504d',      /* 少し明るさを加えた柔らかいココアブラウン */
-            muted: '#a89895',     /* 軽やかで澄んだモーヴピンクグレー */
-            border: '#fbf0ed',    /* 桜の花びらの境界線のようなサクラホワイト */
-            lightBg: '#fffdfd',   /* 真っ白に極めて近く、ほんのりピンクを帯びたミルク色 */
-            sage: '#e59fa4',      /* 暗さを完全に抜いた、澄み切った明るいサクラピンク */
-            sageHover: '#d48a8f', /* 明るく上品なローズサクラ */
-            sageLight: '#fff3f3', /* ふんわり明るい薄サクラ色 */
-            darkSage: '#ffffff',  /* 今週のカード背景を「白」にし、画面全体をパッと明るく */
-            warning: '#eb7b80',   /* 優しい明るさのベリーコーラル（警告色） */
-            warningBg: '#fff8f8', /* 非常に明るく澄んだサクラ警告背景 */
-            warningBorder: '#fde5e6',
-            success: '#5fa18f'    /* 澄んだ明るいお茶のようなライトアッシュグリーン */
+            text: '#4d413e',      /* ほんのり赤みのある優しい焦茶色 */
+            muted: '#948380',     /* 柔らかいローズグレー */
+            border: '#fbeee9',    /* さらに白く明るいサクラホワイト境界線 */
+            lightBg: '#fdfbfa',   /* ミルク色のようなホワイト */
+            sage: '#e59fa4',      /* 明るく澄んだサクラピンク（メインカラー） */
+            sageHover: '#d4888d', /* 少し濃いサクラピンク */
+            sageLight: '#fdf0f0', /* 薄いさくら色 */
+            darkSage: '#ffffff',  /* 【改善】重いココア色から清潔な白背景へ */
+            warning: '#c25a5f',   /* 優しいベリーピンク（警告色） */
+            warningBg: '#fdf5f5', /* 薄いさくら警告背景 */
+            warningBorder: '#f8dedf',
+            success: '#5c7d75'    /* 穏やかなアッシュグリーン */
           }
         },
         fontFamily: {
@@ -59,10 +59,10 @@
   }
 </style>
 </head>
-<body class="bg-[#fdf7f5] text-brand-text antialiased min-h-screen py-10 px-4 font-sans selection:bg-stone-200">
+<body class="bg-[#fbf4f2] text-brand-text antialiased min-h-screen py-10 px-4 font-sans selection:bg-stone-200">
 
 <div class="max-w-xl mx-auto">
-  <!-- ヘッダーデザイン：静かで優しく、オーガニックな雰囲気 -->
+  <!-- ヘッダーデザイン：静かで優しく、明るく爽やかな雰囲気 -->
   <header class="text-center mb-8">
     <div class="inline-flex items-center justify-center text-brand-muted w-14 h-14 rounded-full bg-white border border-brand-border shadow-sm mb-4">
       <svg class="w-6 h-6 text-brand-sage" fill="none" stroke="currentColor" stroke-width="1.25" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -199,14 +199,14 @@
       <p class="text-brand-muted">お届け完了の予定日: <span id="w2-date" class="font-bold text-brand-text"></span></p>
     </div>
 
-    <!-- 🚨 今週の注文アクションカード：白背景ベース ＋ 太いサクラ色枠 ＋ 淡いピンクの明るいリデザイン -->
-    <div class="bg-white text-brand-text rounded-[22px] border-2 border-brand-sage shadow-md p-6 md:p-8 space-y-5">
+    <!-- 🚨 【改善】今週の注文アクションカード：白背景＋優しいサクラ色のふんわり太枠 -->
+    <div class="bg-white rounded-[22px] border-4 border-brand-sage shadow-md p-6 md:p-8 space-y-5">
       <div class="flex items-center justify-between border-b border-brand-border pb-4">
         <div class="flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-brand-sage"></span>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-brand-text">今週（直近の<span id="target-day-name">水曜日</span>）に注文するもの</h3>
+          <span class="w-2.5 h-2.5 rounded-full bg-brand-sage animate-pulse"></span>
+          <h3 class="text-xs font-black uppercase tracking-wider text-brand-text">今週（直近の<span id="target-day-name">水曜日</span>）に注文するもの</h3>
         </div>
-        <span id="current-order-date" class="text-[10px] text-brand-sage font-bold tracking-wider bg-brand-sageLight py-1 px-3 rounded-full"></span>
+        <span id="current-order-date" class="text-[10px] text-brand-text font-bold tracking-wider bg-brand-sageLight py-1 px-3 rounded-full"></span>
       </div>
 
       <div id="current-order-content" class="space-y-4">
@@ -235,24 +235,98 @@
 </div>
 
 <script>
-  // パック種類のマスタデータ
+  // パック種類のマスタデータ (LocalStorageにない場合の初期値)
   let itemsData = [
     { id: 1, kcal: 300, packPerBox: 20, consume: 3 },
     { id: 2, kcal: 400, packPerBox: 20, consume: 2 },
     { id: 3, kcal: 500, packPerBox: 20, consume: 2 }
   ];
 
-  window.addEventListener('DOMContentLoaded', () => {
-    // 日付入力の初期値設定
+  // データをブラウザ(LocalStorage)に自動保存する関数
+  function saveAllData() {
+    const stocks = {};
+    itemsData.forEach(item => {
+      const el = document.getElementById(`stock-${item.id}`);
+      if (el) {
+        stocks[item.id] = el.value;
+      }
+    });
+
+    const data = {
+      itemsData: itemsData,
+      safeStock: document.getElementById('safe-stock').value,
+      orderDayOfWeek: document.getElementById('order-day-of-week').value,
+      autoBalance: document.getElementById('auto-balance').checked,
+      inputDate: document.getElementById('input-date').value,
+      stocks: stocks
+    };
+    localStorage.setItem('packkeep_saved_state', JSON.stringify(data));
+  }
+
+  // 今日データ確認日の初期フォーマット設定
+  function setTodayDate() {
     const today = new Date();
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
     document.getElementById('input-date').value = `${yyyy}-${mm}-${dd}`;
+  }
 
-    // 各セクションの初期描画
+  // 保存されたデータをブラウザから読み込んで復元する関数
+  function loadAllData() {
+    const saved = localStorage.getItem('packkeep_saved_state');
+    if (!saved) return null;
+    
+    try {
+      const data = JSON.parse(saved);
+      if (data.itemsData) itemsData = data.itemsData;
+      if (data.safeStock) document.getElementById('safe-stock').value = data.safeStock;
+      if (data.orderDayOfWeek) document.getElementById('order-day-of-week').value = data.orderDayOfWeek;
+      if (data.autoBalance !== undefined) document.getElementById('auto-balance').checked = data.autoBalance;
+      if (data.inputDate) {
+        document.getElementById('input-date').value = data.inputDate;
+      } else {
+        setTodayDate();
+      }
+      return data.stocks || {};
+    } catch (e) {
+      console.error("Failed to load saved data", e);
+      return null;
+    }
+  }
+
+  // 各種設定フィールドの変更を検知して自動保存するバインド処理
+  function setupAutoSave() {
+    const targets = ['safe-stock', 'order-day-of-week', 'auto-balance', 'input-date'];
+    targets.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('change', saveAllData);
+        if (el.tagName === 'INPUT') {
+          el.addEventListener('input', saveAllData);
+        }
+      }
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    // まず日付入力に今日の日付をセット
+    setTodayDate();
+
+    // 保存データの読み込みと復元
+    const savedStocks = loadAllData();
+
+    // 各セクションを描画 (記憶された在庫数も引き継ぐ)
     renderConfigItems();
-    renderStockInputs();
+    renderStockInputs(savedStocks);
+    
+    // 設定変更時の自動保存を設定
+    setupAutoSave();
+
+    // 以前のセーブデータが残っている場合、親切のために起動時に自動計算
+    if (savedStocks) {
+      calculateOrder();
+    }
   });
 
   // 詳細設定の中の登録リストを表示
@@ -312,8 +386,8 @@
     }
   }
 
-  // 現在の在庫入力欄を動的生成（すでに入力されていた値は自動保持）
-  function renderStockInputs() {
+  // 現在の在庫入力欄を動的生成 (記憶されていた在庫があれば復元)
+  function renderStockInputs(savedStocks = null) {
     const container = document.getElementById('stock-inputs-container');
     const savedValues = {};
     
@@ -321,6 +395,8 @@
       const el = document.getElementById(`stock-${item.id}`);
       if (el) {
         savedValues[item.id] = el.value;
+      } else if (savedStocks && savedStocks[item.id] !== undefined) {
+        savedValues[item.id] = savedStocks[item.id];
       }
     });
 
@@ -332,7 +408,7 @@
       div.innerHTML = `
         <label class="block text-xs font-bold text-brand-text/90">${item.kcal}kcal の在庫数</label>
         <div class="relative rounded-xl">
-          <input type="number" id="stock-${item.id}" min="0" placeholder="例: 18" value="${value}" class="block w-full rounded-xl border border-brand-border bg-white py-2.5 px-4 text-brand-text font-bold focus:border-brand-sage focus:outline-none focus:ring-1 focus:ring-brand-sage/20 transition-all text-sm pr-16">
+          <input type="number" id="stock-${item.id}" min="0" placeholder="例: 18" value="${value}" oninput="saveAllData()" class="block w-full rounded-xl border border-brand-border bg-white py-2.5 px-4 text-brand-text font-bold focus:border-brand-sage focus:outline-none focus:ring-1 focus:ring-brand-sage/20 transition-all text-sm pr-16">
           <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
             <span class="text-xs font-bold text-brand-muted">パック</span>
           </div>
@@ -359,6 +435,7 @@
     const item = itemsData.find(i => i.id === id);
     if (item) {
       item[field] = parseInt(value) || 0;
+      saveAllData();
       if (field === 'kcal') {
         renderStockInputs(); // カロリーラベル更新のために再描画
       }
@@ -377,6 +454,7 @@
     });
     renderConfigItems();
     renderStockInputs();
+    saveAllData();
   }
 
   // 品目の削除
@@ -385,10 +463,14 @@
     itemsData = itemsData.filter(item => item.id !== id);
     renderConfigItems();
     renderStockInputs();
+    saveAllData();
   }
 
   // 🧮 2週間先読み発注ロジックによる計算シミュレーション
   function calculateOrder() {
+    // 実行時に現在の最新状態を強制セーブ
+    saveAllData();
+
     const inputDateValue = document.getElementById('input-date').value;
     const baseDate = inputDateValue ? new Date(inputDateValue) : new Date();
     
@@ -577,7 +659,7 @@
         <div class="text-center py-6">
           <div class="text-3xl mb-2">🍀</div>
           <p class="font-semibold text-brand-success text-sm">今週${orderDayName}（${formatDate(w1Date)}）の発注は不要です</p>
-          <p class="text-[11px] text-brand-muted mt-1 leading-normal">現在の在庫で、ご指定の予備日数が完全にキープされます。</p>
+          <p class="text-[11px] text-brand-muted mt-1 leading-normal">現在の在庫で、ご指定 of 予備日数が完全にキープされます。</p>
         </div>
       `;
     }
